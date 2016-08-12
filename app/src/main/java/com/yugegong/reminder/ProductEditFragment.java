@@ -2,16 +2,15 @@ package com.yugegong.reminder;
 
 import android.Manifest;
 import android.app.DatePickerDialog;
-import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputEditText;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
@@ -26,12 +25,12 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.yugegong.reminder.data.ProductContract;
+
 import java.io.File;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -43,11 +42,13 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
     private final static String TAG = ProductEditFragment.class.getSimpleName();
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 300;
+
     private Uri mPhotoURI;
+    private String mCurrentPhotoPath;
 
     private FrameLayout mEditLayout;
     private FrameLayout mImageFrameLayout;
-    private ImageView mImageView;
+    private ProductImageView mImageView;
     private TextInputEditText mNameEditTxt;
     private DatePickEditText mFromEditTxt;
     private DatePickEditText mToEditTxt;
@@ -56,7 +57,10 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
 
 
     public static class DatePickEditText extends EditText implements DatePickerDialog.OnDateSetListener {
+
+        private long timestamp = -1;
         private SimpleDateFormat mDateFormat = new SimpleDateFormat("MMM d, yyyy", getResources().getConfiguration().locale);
+
         public DatePickEditText(Context context) {
             super(context);
         }
@@ -69,14 +73,18 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
             super(context, attrs, defStyleAttr);
         }
 
+        public long getTimestamp() {
+            return timestamp;
+        }
+
         @Override
         public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
             Calendar rightNow = Calendar.getInstance();
             rightNow.set(year, monthOfYear, dayOfMonth);
             this.setText(mDateFormat.format(rightNow.getTime()));
+            timestamp = rightNow.getTimeInMillis();
         }
     }
-
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -91,7 +99,7 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
         mEditLayout.setOnTouchListener(this);
 
         mImageFrameLayout = (FrameLayout) rootView.findViewById(R.id.product_image_frame);
-        mImageView = (ImageView) rootView.findViewById(R.id.product_image);
+        mImageView = (ProductImageView) rootView.findViewById(R.id.product_image);
 
         mNameEditTxt = (TextInputEditText) rootView.findViewById(R.id.product_name);
 
@@ -116,7 +124,9 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
                 this.requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                         MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
             } else {
-                loadImageView();
+                mImageView.loadImageViewFromFile(mCurrentPhotoPath,
+                        mImageFrameLayout.getWidth(), mImageFrameLayout.getHeight());
+
             }
         }
     }
@@ -132,7 +142,8 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
 
                     // permission was granted, yay! Do the
                     // related task you need to do.
-                    loadImageView();
+                    mImageView.loadImageViewFromFile(mCurrentPhotoPath,
+                            mImageFrameLayout.getWidth(), mImageFrameLayout.getHeight());
 
                 } else {
 
@@ -145,22 +156,6 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
 
             // other 'case' lines to check for other
             // permissions this app might request
-        }
-    }
-
-    private void loadImageView() {
-        Log.d(TAG, "Output photoURI = " + mPhotoURI.toString());
-        ContentResolver cr = getContext().getContentResolver();
-//            cr.notifyChange(mPhotoURI, null);
-        Bitmap imageBitmap;
-        try {
-            imageBitmap = MediaStore.Images.Media.getBitmap(cr, mPhotoURI);
-            mImageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-            mImageView.setImageBitmap(imageBitmap);
-
-        } catch (IOException e) {
-            Toast.makeText(getContext(), "Failed to load", Toast.LENGTH_SHORT).show();
-            Log.d(TAG, "Failed to load", e);
         }
     }
 
@@ -223,27 +218,41 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
         }
     }
 
-    @Nullable
     private File createImageFile() {
         String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String imageFileName = "JPEG_" + timestamp + ".jpg";
-
         File storeDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES + "/Reminder");
-        Log.d(TAG, "storeDir = " + storeDir.getAbsolutePath());
         storeDir.mkdir();
         File image = new File(storeDir, imageFileName);
-        Log.d(TAG, "imageFile = " + image.getName());
+        mCurrentPhotoPath = image.getAbsolutePath();
+        Log.d(TAG, "mCurrentPhotoPath = " + mCurrentPhotoPath);
         return image;
     }
 
     private void cancelEdit() {
-        Intent intent = new Intent(getContext(), MainActivity.class);
-        startActivity(intent);
-
+        startMainActivity();
     }
 
     private void saveEdit() {
+
+        String name = mNameEditTxt.getText().toString();
+        if (name == null || name.length() == 0) {
+            Toast.makeText(getContext(), "Product name is empty", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (mFromEditTxt.timestamp == -1) {
+            Toast.makeText(getContext(), "Create date is empty", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (mToEditTxt.timestamp == -1) {
+            Toast.makeText(getContext(), "Expire date is empty", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        insertProduct(name, mFromEditTxt.timestamp, mToEditTxt.timestamp, mCurrentPhotoPath);
         Toast.makeText(getContext(), "Saved", Toast.LENGTH_SHORT).show();
+
+        startMainActivity();
     }
 
     private void setOnClickListeners(View... views) {
@@ -251,4 +260,44 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
             view.setOnClickListener(this);
         }
     }
+
+    private void startMainActivity() {
+        Intent intent = new Intent(getContext(), MainActivity.class);
+        startActivity(intent);
+    }
+
+    private void insertProduct(String productName, long createTimestamp, long expireTimestamp, String imgPath) {
+        EditProductTask task = new EditProductTask();
+        task.execute(productName, Long.toString(createTimestamp), Long.toString(expireTimestamp), imgPath);
+
+
+
+
+    }
+
+    private class EditProductTask extends AsyncTask<String, Void, Void> {
+
+        @Override
+        protected Void doInBackground(String... params) {
+            String productName = params[0];
+            String createTimestamp = params[1];
+            String expireTimestamp = params[2];
+            String imgPath = params[3];
+
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_NAME, productName);
+            contentValues.put(ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_CREATE_DATE, createTimestamp);
+            contentValues.put(ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_EXPIRE_DATE, expireTimestamp);
+
+            if (imgPath != null && imgPath.length() != 0) {
+                contentValues.put(ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_IMG_PATH, imgPath);
+            }
+
+            Uri productUri = ProductContract.ProductEntry.CONTENT_URI;
+            Uri newUri = getContext().getContentResolver().insert(productUri, contentValues);
+            Log.d(TAG, newUri.toString());
+            return null;
+        }
+    }
+
 }

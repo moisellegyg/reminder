@@ -24,6 +24,11 @@
             android:parentActivityName=".MainActivity"
             android:theme="@style/AppTheme.NoActionBar"
             android:windowSoftInputMode="stateHidden"/>
+        <provider
+            android:authorities="@string/product_provider_authority"
+            android:name=".data.ProductProvider"
+            android:exported="false"
+            android:syncable="true" />
 
     </application>
 

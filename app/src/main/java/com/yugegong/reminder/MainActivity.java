@@ -28,6 +28,8 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
+        Utils.setMetrics(this);
     }
 
     @Override
