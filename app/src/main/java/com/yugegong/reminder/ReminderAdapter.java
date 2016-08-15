@@ -8,32 +8,33 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 /**
  * Created by ygong on 8/3/16.
  */
-public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ReminderViewHolder>{
+public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHolder>{
     private final static String TAG = ReminderAdapter.class.getSimpleName();
+    private final Context mContext;
+    private final ReminderAdapterOnClickHandler mOnClickHandler;
 
-    private Context mContext;
     private Cursor mCursor;
 
-
-    public ReminderAdapter(Context context) {
+    public ReminderAdapter(Context context, ReminderAdapterOnClickHandler handler) {
         mContext = context;
+        mOnClickHandler = handler;
     }
 
-    public static class ReminderViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         public final ProductImageView mImageView;
         public final TextView mNameTextView;
         public final TextView mCreateDateTextView;
         public final TextView mExpireDateTextView;
-
-        public ReminderViewHolder(View view){
+        public ViewHolder(View view){
             super(view);
+
             mImageView = (ProductImageView) view.findViewById(R.id.product_image);
-            mImageView.setTargetSize(Utils.displayWidthPixels(), Utils.dpToPixel(192));
+
+            mImageView.setTargetSize(Utils.displayWidthPixels(), Utils.convertDpToPixels(192));
             mNameTextView = (TextView) view.findViewById(R.id.product_name);
             mCreateDateTextView = (TextView) view.findViewById(R.id.item_create_date);
             mExpireDateTextView = (TextView) view.findViewById(R.id.item_expire_date);
@@ -42,22 +43,28 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.Remind
 
         @Override
         public void onClick(View v) {
-            Toast.makeText(v.getContext(), mNameTextView.getText(), Toast.LENGTH_SHORT).show();
+            int position = getAdapterPosition();
+
+
         }
     }
 
+    public interface ReminderAdapterOnClickHandler {
+        void onClick(ViewHolder viewHolder);
+    }
+
     @Override
-    public ReminderViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         if (parent instanceof RecyclerView) {
             View view = LayoutInflater.from(parent.getContext()).
                     inflate(R.layout.list_item_reminder, parent, false);
             view.setFocusable(true);
-            return new ReminderViewHolder(view);
+            return new ViewHolder(view);
         } else throw new RuntimeException("ReminderAdapter is not bound to RecyclerView.");
     }
 
     @Override
-    public void onBindViewHolder(ReminderViewHolder holder, int position) {
+    public void onBindViewHolder(ViewHolder holder, int position) {
         Log.d(TAG, "onBindViewHolder " + position + " " + mCursor.getCount());
         if (mCursor == null) return;
         if (mCursor.moveToPosition(position)) {
@@ -72,7 +79,7 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.Remind
 
             String path = mCursor.getString(MainActivityFragment.COL_PRODUCT_IMG_PATH);
             Log.d(TAG, "image path: " + path);
-            holder.mImageView.loadImageViewFromFile(path);
+            holder.mImageView.loadImageFromFile(path);
         }
     }
 

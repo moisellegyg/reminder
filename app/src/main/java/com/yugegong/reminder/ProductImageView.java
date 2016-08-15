@@ -12,10 +12,10 @@ import android.widget.ImageView;
 /**
  * Created by ygong on 8/11/16.
  */
-public class ProductImageView extends ImageView {
+public class ProductImageView extends ImageView{
     private final static String TAG = ProductImageView.class.getSimpleName();
     private int mTargetW, mTargetH;
-    private String mImgPath;
+    private String mPath;
     private boolean mIsLoaded;
     public ProductImageView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -26,10 +26,13 @@ public class ProductImageView extends ImageView {
             a.recycle();
         }
     }
+    public void setImagePath(String path) {
+        mPath = path;
+    }
 
-    public void setTargetSize(int targetWidth, int targetHeight) {
-        mTargetW = targetWidth;
-        mTargetH = targetHeight;
+    public void setTargetSize(int width, int height) {
+        mTargetW = width;
+        mTargetH = height;
     }
 
     public boolean isImgLoaded() {
@@ -41,45 +44,56 @@ public class ProductImageView extends ImageView {
         requestLayout();
     }
 
-    public void loadImageViewFromFile(String path, int targetW, int targetH) {
-        setTargetSize(targetW, targetH);
-        loadImageViewFromFile(path);
-    }
-
-    public void loadImageViewFromFile(String path) {
-        mImgPath = path;
-        if (mTargetW == 0 || mTargetH == 0) {
-            Log.d(TAG, "need to set target size for this ImageView");
-            return;
-        }
-//        ContentResolver cr = getContext().getContentResolver();
-////            cr.notifyChange(mPhotoURI, null);
-//        Bitmap imageBitmap;
-//        try {
-//            imageBitmap = MediaStore.Images.Media.getBitmap(cr, mPhotoURI);
-//            mImageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-//            mImageView.setImageBitmap(imageBitmap);
-//
-//        } catch (IOException e) {
-//            Toast.makeText(getContext(), "Failed to load", Toast.LENGTH_SHORT).show();
-//            Log.d(TAG, "Failed to load", e);
-//        }
-        LoadImageTask task = new LoadImageTask();
+    public void loadImageAfterSave(String path, int targetW, int targetH) {
+        mPath = path;
+        mTargetW = targetW;
+        mTargetH = targetH;
+        SaveImageTask task = new SaveImageTask();
         task.execute(this);
-//        mImageView.setImgLoaded(true);
     }
 
-
-    private class LoadImageTask extends AsyncTask<ProductImageView, Void, Bitmap> {
-        ProductImageView imageView = null;
+    private class SaveImageTask extends AsyncTask<ProductImageView, Void, Bitmap> {
+        private ProductImageView imageView = null;
         @Override
         protected Bitmap doInBackground(ProductImageView... imageViews) {
-            this.imageView = imageViews[0];
-            return decodeBitmapFromFile(mImgPath, mTargetW, mTargetH);
+            Log.d("SaveImageTask", "doInBackground");
+            imageView = imageViews[0];
+            Bitmap bitmap = Utils.decodeBitmapFromFile(imageView.mPath,
+                    imageView.mTargetW, imageView.mTargetH);
+            Utils.saveBitmapFile(imageView.mPath, bitmap);
+
+            return BitmapFactory.decodeFile(mPath);
         }
 
         @Override
         protected void onPostExecute(Bitmap bitmap) {
+            Log.d("SaveImageTask", "onPostExecute " + bitmap.getWidth() + " " + bitmap.getHeight());
+            if (bitmap == null) {
+                Log.d(TAG, "bitmap is null, no image will be loaded");
+                return;
+            }
+            imageView.setImageBitmap(bitmap);
+        }
+    }
+
+    public void loadImageFromFile(String path) {
+        mPath = path;
+        LoadImageTask task = new LoadImageTask();
+        task.execute(this);
+    }
+
+    private class LoadImageTask extends AsyncTask<ProductImageView, Void, Bitmap> {
+        private ProductImageView imageView = null;
+        @Override
+        protected Bitmap doInBackground(ProductImageView... imageViews) {
+            Log.d(TAG, "doInBackground");
+            this.imageView = imageViews[0];
+            return BitmapFactory.decodeFile(imageView.mPath);
+        }
+
+        @Override
+        protected void onPostExecute(Bitmap bitmap) {
+            Log.d(TAG, "onPostExecute");
             if (bitmap == null) {
                 Log.d(TAG, "bitmap is null, no image will be loaded");
                 return;
@@ -87,23 +101,7 @@ public class ProductImageView extends ImageView {
             imageView.setImageBitmap(bitmap);
         }
 
-        private Bitmap decodeBitmapFromFile(String path, int targetW, int targetH) {
-
-            // Get the dimensions of the original bitmap
-            BitmapFactory.Options options = new BitmapFactory.Options();
-            options.inJustDecodeBounds = true;
-            BitmapFactory.decodeFile(path, options);
-
-            int photoW = options.outWidth;
-            int photoH = options.outHeight;
-
-            int scaleFactor = Math.min(photoW/targetW, photoH/targetH);
-
-            options.inJustDecodeBounds = false;
-            options.inSampleSize = scaleFactor;
-
-            // Decode bitmap with inSampleSize set
-            return BitmapFactory.decodeFile(path, options);
-        }
     }
+
+
 }

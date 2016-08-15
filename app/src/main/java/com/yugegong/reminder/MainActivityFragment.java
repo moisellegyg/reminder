@@ -49,6 +49,10 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     public MainActivityFragment() {
     }
 
+    public ReminderAdapter getReminderAdapter() {
+        return mReminderAdapter;
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {

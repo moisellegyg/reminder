@@ -1,11 +1,9 @@
 package com.yugegong.reminder;
 
-import android.Manifest;
 import android.app.DatePickerDialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -13,7 +11,6 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.design.widget.TextInputEditText;
 import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
 import android.text.InputType;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -31,6 +28,7 @@ import android.widget.Toast;
 import com.yugegong.reminder.data.ProductContract;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -43,8 +41,18 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 300;
 
+    // Keys for savedInstanceState bundle
+    private static final String KEY_NAME = "prod_name";
+    private static final String KEY_CREATE_TIME = "create_time";
+    private static final String KEY_EXPIRE_TIME = "expire_time";
+    private static final String KEY_IMG_PATH = "path";
+    private static final String KEY_IMG_URI = "uri";
+
+    // Values
+    private String mName;
     private Uri mPhotoURI;
     private String mCurrentPhotoPath;
+
 
     private FrameLayout mEditLayout;
     private FrameLayout mImageFrameLayout;
@@ -59,7 +67,7 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
     public static class DatePickEditText extends EditText implements DatePickerDialog.OnDateSetListener {
 
         private long timestamp = -1;
-        private SimpleDateFormat mDateFormat = new SimpleDateFormat("MMM d, yyyy", getResources().getConfiguration().locale);
+//        private SimpleDateFormat mDateFormat = new SimpleDateFormat("MMM d, yyyy", getResources().getConfiguration().locale);
 
         public DatePickEditText(Context context) {
             super(context);
@@ -81,8 +89,8 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
         public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
             Calendar rightNow = Calendar.getInstance();
             rightNow.set(year, monthOfYear, dayOfMonth);
-            this.setText(mDateFormat.format(rightNow.getTime()));
             timestamp = rightNow.getTimeInMillis();
+            this.setText(Utils.getDateTimeString(timestamp));
         }
     }
 
@@ -91,7 +99,50 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
         Log.d(TAG, "onCreateView");
         View rootView = inflater.inflate(R.layout.fragment_product_edit, container, false);
         initView(rootView);
+        if (savedInstanceState != null) {
+            restoreInstanceState(savedInstanceState);
+        }
         return rootView;
+    }
+
+    private void restoreInstanceState(Bundle savedInstanceState) {
+        Log.d(TAG, "restoreInstanceState");
+        mName = savedInstanceState.getString(KEY_NAME);
+        mFromEditTxt.timestamp = savedInstanceState.getLong(KEY_CREATE_TIME, -1);
+        mToEditTxt.timestamp = savedInstanceState.getLong(KEY_EXPIRE_TIME, -1);
+        mCurrentPhotoPath = savedInstanceState.getString(KEY_IMG_PATH);
+        mPhotoURI = savedInstanceState.getParcelable(KEY_IMG_URI);
+
+        if (mName != null && mName.length() > 0) mNameEditTxt.setText(mName);
+        if (mFromEditTxt.timestamp != -1) mFromEditTxt.setText(Utils.getDateTimeString(mFromEditTxt.timestamp));
+        if (mToEditTxt.timestamp != -1) mToEditTxt.setText(Utils.getDateTimeString(mToEditTxt.timestamp));
+        if (mCurrentPhotoPath != null && mCurrentPhotoPath.length() > 0) {
+            mImageView.loadImageFromFile(mCurrentPhotoPath);
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        Log.d(TAG, "onSaveInstanceState");
+
+        mName = mNameEditTxt.getText().toString();
+        if (mName != null && mName.length() > 0) {
+            outState.putString(KEY_NAME, mName);
+        }
+        if (mFromEditTxt.timestamp != -1) {
+            outState.putLong(KEY_CREATE_TIME, mFromEditTxt.timestamp);
+        }
+        if (mToEditTxt.timestamp != -1) {
+            outState.putLong(KEY_EXPIRE_TIME, mToEditTxt.timestamp);
+        }
+        if (mPhotoURI != null) {
+            outState.putParcelable(KEY_IMG_URI, mPhotoURI);
+        }
+        if (mCurrentPhotoPath != null && mCurrentPhotoPath.length() > 0) {
+            outState.putString(KEY_IMG_PATH, mCurrentPhotoPath);
+        }
+
+        super.onSaveInstanceState(outState);
     }
 
     private void initView(View rootView) {
@@ -115,72 +166,35 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        galleryAddPic(mPhotoURI);
-
+        Log.d(TAG, "onActivityResult");
         if (resultCode == getActivity().RESULT_OK && requestCode == REQUEST_IMAGE_CAPTURE) {
-            if (ContextCompat.checkSelfPermission(getContext(),
-                    Manifest.permission.READ_EXTERNAL_STORAGE)
-                    != PackageManager.PERMISSION_GRANTED) {
-                this.requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                        MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
-            } else {
-                mImageView.loadImageViewFromFile(mCurrentPhotoPath,
-                        mImageFrameLayout.getWidth(), mImageFrameLayout.getHeight());
-
-            }
+            mImageView.loadImageAfterSave(mCurrentPhotoPath,
+                    mImageFrameLayout.getWidth(), mImageFrameLayout.getHeight());
         }
-    }
-    @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
-        Log.d(TAG, "requestCode = " + requestCode);
-        switch (requestCode) {
-            case MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-                    // permission was granted, yay! Do the
-                    // related task you need to do.
-                    mImageView.loadImageViewFromFile(mCurrentPhotoPath,
-                            mImageFrameLayout.getWidth(), mImageFrameLayout.getHeight());
-
-                } else {
-
-                    // permission denied, boo! Disable the
-                    // functionality that depends on this permission.
-                    Toast.makeText(getContext(), "Permission denied. Cannot load the photo.", Toast.LENGTH_SHORT).show();
-                }
-                return;
-            }
-
-            // other 'case' lines to check for other
-            // permissions this app might request
-        }
-    }
-
-    private void galleryAddPic(Uri photoURI) {
-        Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-        mediaScanIntent.setData(photoURI);
-        getContext().sendBroadcast(mediaScanIntent);
     }
 
     private void setDate(View v) {
         Calendar rightNow = Calendar.getInstance();
-        DatePickerDialog dialog = new DatePickerDialog(getContext(), (DatePickEditText)v,
-                rightNow.get(rightNow.YEAR), rightNow.get(rightNow.MONTH), rightNow.get(rightNow.DAY_OF_MONTH));
-//        if (v == mToEditTxt) dialog.getDatePicker().setMinDate(rightNow.getTime().getTime());
+        DatePickerDialog dialog = new DatePickerDialog(getContext(),
+                (DatePickEditText)v,
+                rightNow.get(rightNow.YEAR),
+                rightNow.get(rightNow.MONTH),
+                rightNow.get(rightNow.DAY_OF_MONTH));
+
+        // Set limitation for a calendar when the other is set
+        if (v == mToEditTxt && mFromEditTxt.timestamp != -1)
+            dialog.getDatePicker().setMinDate(mFromEditTxt.timestamp);
+
         dialog.show();
     }
 
     @Override
     public void onClick(View v) {
-        Toast.makeText(getContext(), "Clicked!", Toast.LENGTH_SHORT).show();
         hideSoftInput();
         if (v == mFromEditTxt || v == mToEditTxt) {
             setDate(v);
         } else if (v == mImageFrameLayout) {
-            capturePhoto();
+            dispatchTakePictureIntent();
         } else if (v == mCancelBtn) {
             cancelEdit();
         } else if (v == mSaveBtn) {
@@ -190,11 +204,9 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
-        Log.d(TAG, "Touched!");
         mToEditTxt.clearFocus();
         mFromEditTxt.clearFocus();
         mNameEditTxt.clearFocus();
-        Log.d(TAG, "v.isFocused " + v.isFocused());
         hideSoftInput();
         return false;
     }
@@ -205,10 +217,15 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
         imm.hideSoftInputFromWindow(getActivity().getCurrentFocus().getApplicationWindowToken(), 0);
     }
 
-    private void capturePhoto() {
+    private void dispatchTakePictureIntent() {
         Intent takePhotoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePhotoIntent.resolveActivity(getActivity().getPackageManager()) != null) {
-            File photoFile = createImageFile();
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             if (photoFile != null) {
                 mPhotoURI = Uri.fromFile(photoFile);
                 Log.d(TAG, "Input photoURI = " + mPhotoURI.toString());
@@ -218,12 +235,15 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
         }
     }
 
-    private File createImageFile() {
+    private File createImageFile() throws IOException {
         String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "JPEG_" + timestamp + ".jpg";
-        File storeDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES + "/Reminder");
-        storeDir.mkdir();
-        File image = new File(storeDir, imageFileName);
+        String imageFileName =  "JPEG_" + timestamp + "_";
+        File storageDir = getContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image =  File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
         mCurrentPhotoPath = image.getAbsolutePath();
         Log.d(TAG, "mCurrentPhotoPath = " + mCurrentPhotoPath);
         return image;
@@ -235,8 +255,8 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
 
     private void saveEdit() {
 
-        String name = mNameEditTxt.getText().toString();
-        if (name == null || name.length() == 0) {
+        mName = mNameEditTxt.getText().toString();
+        if (mName == null || mName.length() == 0) {
             Toast.makeText(getContext(), "Product name is empty", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -249,7 +269,7 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
             return;
         }
 
-        insertProduct(name, mFromEditTxt.timestamp, mToEditTxt.timestamp, mCurrentPhotoPath);
+        insertProduct(mName, mFromEditTxt.timestamp, mToEditTxt.timestamp, mCurrentPhotoPath);
         Toast.makeText(getContext(), "Saved", Toast.LENGTH_SHORT).show();
 
         startMainActivity();
@@ -269,16 +289,13 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
     private void insertProduct(String productName, long createTimestamp, long expireTimestamp, String imgPath) {
         EditProductTask task = new EditProductTask();
         task.execute(productName, Long.toString(createTimestamp), Long.toString(expireTimestamp), imgPath);
-
-
-
-
     }
 
     private class EditProductTask extends AsyncTask<String, Void, Void> {
 
         @Override
         protected Void doInBackground(String... params) {
+            Log.d(TAG, "doInBackground");
             String productName = params[0];
             String createTimestamp = params[1];
             String expireTimestamp = params[2];
@@ -297,6 +314,12 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
             Uri newUri = getContext().getContentResolver().insert(productUri, contentValues);
             Log.d(TAG, newUri.toString());
             return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            Log.d(TAG, "onPostExecute");
+
         }
     }
 
