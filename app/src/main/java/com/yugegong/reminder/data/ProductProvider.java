@@ -7,11 +7,14 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 /**
  * Created by ygong on 8/9/16.
  */
 public class ProductProvider extends ContentProvider {
+    private final static String TAG = ProductProvider.class.getSimpleName();
+
     // Defines a handle to the database helper object.
     private ProductDbHelper mProductDbHelper;
     // Holds the database object
@@ -50,7 +53,7 @@ public class ProductProvider extends ContentProvider {
                         sortOrder);
                 break;
             case CODE_PRODUCT_ITEM:
-                cursor = getProductById(uri);
+                cursor = getProductById(uri, projection);
                 break;
             default:
                 cursor = null;
@@ -75,20 +78,20 @@ public class ProductProvider extends ContentProvider {
     @Nullable
     @Override
     public Uri insert(Uri uri, ContentValues values) {
-        long _ID;
+        long _id;
         mDb = mProductDbHelper.getWritableDatabase();
         switch (mUriMatcher.match(uri)) {
             case CODE_PRODUCTS:
-                _ID = mDb.insert(ProductContract.ProductEntry.TABLE_NAME, null, values);
+                _id = mDb.insert(ProductContract.ProductEntry.TABLE_NAME, null, values);
                 break;
             case CODE_PRODUCT_ITEM:
-                _ID = -1;
+                _id = -1;
                 break;
             default:
-                _ID = -1;
+                _id = -1;
         }
         getContext().getContentResolver().notifyChange(uri, null);
-        return  ProductContract.ProductEntry.buildProductUri(_ID);
+        return  ProductContract.ProductEntry.buildProductUri(_id);
     }
 
     @Override
@@ -118,16 +121,40 @@ public class ProductProvider extends ContentProvider {
                 updatedRows = mDb.update(ProductContract.ProductEntry.TABLE_NAME, values, selection, selectionArgs);
                 break;
             case CODE_PRODUCT_ITEM:
-                updatedRows = mDb.update(ProductContract.ProductEntry.TABLE_NAME, values, selection, selectionArgs);
+                updatedRows = updateProductById(uri, values);
                 break;
             default:
                 updatedRows = 0;
         }
         if (updatedRows != 0) getContext().getContentResolver().notifyChange(uri, null);
+        Log.d(TAG, "updatedRows = "  + updatedRows);
         return updatedRows;
     }
 
-    private Cursor getProductById(Uri uri){
-        return null;
+    private Cursor getProductById(Uri uri, String[] projection){
+        mDb = mProductDbHelper.getReadableDatabase();
+        long _id = ProductContract.ProductEntry.getIdFromUri(uri);
+        String selection = "_id = ? ";
+        String[] selectionArgs = {Long.toString(_id)};
+        return  mDb.query(
+                ProductContract.ProductEntry.TABLE_NAME,
+                projection,
+                selection,
+                selectionArgs,
+                null,
+                null,
+                null
+        );
+    }
+
+    private int updateProductById(Uri uri, ContentValues values){
+        mDb = mProductDbHelper.getReadableDatabase();
+        long _id = ProductContract.ProductEntry.getIdFromUri(uri);
+        String selection = "_id = ? ";
+        String[] selectionArgs = {Long.toString(_id)};
+        return mDb.update(ProductContract.ProductEntry.TABLE_NAME,
+                values,
+                selection,
+                selectionArgs);
     }
 }

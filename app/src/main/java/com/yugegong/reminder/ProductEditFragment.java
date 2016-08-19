@@ -1,14 +1,17 @@
 package com.yugegong.reminder;
 
+import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputEditText;
 import android.support.v4.app.Fragment;
 import android.text.InputType;
@@ -20,7 +23,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.DatePicker;
-import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -39,20 +41,24 @@ import java.util.Date;
 public class ProductEditFragment extends Fragment implements View.OnClickListener, View.OnTouchListener {
     private final static String TAG = ProductEditFragment.class.getSimpleName();
     private static final int REQUEST_IMAGE_CAPTURE = 1;
-    private static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 300;
+
+    public static final String PRODUCT_URI = "uri";
+    private Uri mProductUri;
 
     // Keys for savedInstanceState bundle
     private static final String KEY_NAME = "prod_name";
     private static final String KEY_CREATE_TIME = "create_time";
     private static final String KEY_EXPIRE_TIME = "expire_time";
-    private static final String KEY_IMG_PATH = "path";
-    private static final String KEY_IMG_URI = "uri";
+    private static final String KEY_RETRIEVED_IMG_PATH = "saved_path";
+    private static final String KEY_LAST_IMG_URI = "last_uri";
+    private static final String KEY_PREINSERT_URI = "preinsert_uri";
 
     // Values
     private String mName;
-    private Uri mPhotoURI;
-    private String mCurrentPhotoPath;
+    private String mRetrievedImgPath;
 
+    private Uri mPreInsertUri;
+    private Uri mLastUri;
 
     private FrameLayout mEditLayout;
     private FrameLayout mImageFrameLayout;
@@ -63,26 +69,35 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
     private LinearLayout mCancelBtn;
     private LinearLayout mSaveBtn;
 
+    private static final String[] PRODUCT_COLUMNS = {
+            ProductContract.ProductEntry._ID,
+            ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_NAME,
+            ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_UPC,
+            ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_IMG_PATH,
+            ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_CREATE_DATE,
+            ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_EXPIRE_DATE
+    };
 
-    public static class DatePickEditText extends EditText implements DatePickerDialog.OnDateSetListener {
+    public static final int COL_PRODUCT_ID = 0;
+    public static final int COL_PRODUCT_NAME = 1;
+    public static final int COL_PRODUCT_UPC = 2;
+    public static final int COL_PRODUCT_IMG_PATH = 3;
+    public static final int COL_PRODUCT_CREATE_DATE = 4;
+    public static final int COL_PRODUCT_EXPIRE_DATE = 5;
+
+
+    public static class DatePickEditText extends TextInputEditText implements DatePickerDialog.OnDateSetListener {
 
         private long timestamp = -1;
-//        private SimpleDateFormat mDateFormat = new SimpleDateFormat("MMM d, yyyy", getResources().getConfiguration().locale);
 
         public DatePickEditText(Context context) {
             super(context);
         }
-
         public DatePickEditText(Context context, AttributeSet attrs) {
             super(context, attrs);
         }
-
         public DatePickEditText(Context context, AttributeSet attrs, int defStyleAttr) {
             super(context, attrs, defStyleAttr);
-        }
-
-        public long getTimestamp() {
-            return timestamp;
         }
 
         @Override
@@ -97,12 +112,46 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         Log.d(TAG, "onCreateView");
+        setRetainInstance(true);
+
         View rootView = inflater.inflate(R.layout.fragment_product_edit, container, false);
-        initView(rootView);
+        bindViews(rootView);
+        setOnClickListeners(mImageFrameLayout, mFromEditTxt, mToEditTxt, mCancelBtn, mSaveBtn);
+        return rootView;
+    }
+
+    private void bindViews(View rootView) {
+        mEditLayout = (FrameLayout) rootView.findViewById(R.id.product_edit_root);
+        mEditLayout.setOnTouchListener(this);
+        mImageFrameLayout = (FrameLayout) rootView.findViewById(R.id.product_image_frame);
+        mImageView = (ProductImageView) rootView.findViewById(R.id.product_image);
+        mNameEditTxt = (TextInputEditText) rootView.findViewById(R.id.product_name);
+        mFromEditTxt = (DatePickEditText) rootView.findViewById(R.id.created_time);
+        mFromEditTxt.setInputType(InputType.TYPE_NULL);
+        mToEditTxt = (DatePickEditText) rootView.findViewById(R.id.expired_time);
+        mToEditTxt.setInputType(InputType.TYPE_NULL);
+        mCancelBtn = (LinearLayout) rootView.findViewById(R.id.btn_cancel);
+        mSaveBtn = (LinearLayout) rootView.findViewById(R.id.btn_save);
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        Log.d(TAG, "onActivityCreated");
+        super.onActivityCreated(savedInstanceState);
+
         if (savedInstanceState != null) {
             restoreInstanceState(savedInstanceState);
+        } else {
+            final Bundle args = getArguments();
+            if (args != null) {
+                mProductUri = args.getParcelable(PRODUCT_URI);
+                if (mProductUri != null) {
+                    Log.d(TAG, mProductUri.toString());
+                    getProductFromUri(mProductUri);
+                }
+            }
         }
-        return rootView;
+        bindDataToViews();
     }
 
     private void restoreInstanceState(Bundle savedInstanceState) {
@@ -110,14 +159,36 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
         mName = savedInstanceState.getString(KEY_NAME);
         mFromEditTxt.timestamp = savedInstanceState.getLong(KEY_CREATE_TIME, -1);
         mToEditTxt.timestamp = savedInstanceState.getLong(KEY_EXPIRE_TIME, -1);
-        mCurrentPhotoPath = savedInstanceState.getString(KEY_IMG_PATH);
-        mPhotoURI = savedInstanceState.getParcelable(KEY_IMG_URI);
+        mRetrievedImgPath = savedInstanceState.getString(KEY_RETRIEVED_IMG_PATH);
+        mLastUri = savedInstanceState.getParcelable(KEY_LAST_IMG_URI);
+        mPreInsertUri = savedInstanceState.getParcelable(KEY_PREINSERT_URI);
 
+        if (mLastUri != null) Log.d(TAG, "restoreInstanceState mLastUri = " + mLastUri.toString());
+        if (mPreInsertUri != null) Log.d(TAG, "restoreInstanceState mPreInsertUri = " + mPreInsertUri.toString());
+    }
+
+    private void getProductFromUri(Uri uri) {
+        Cursor cursor = getContext().getContentResolver().query(uri, PRODUCT_COLUMNS, null, null, null);
+        if (cursor != null && cursor.moveToFirst()) {
+            mName = cursor.getString(COL_PRODUCT_NAME);
+            mFromEditTxt.timestamp = cursor.getLong(COL_PRODUCT_CREATE_DATE);
+            mToEditTxt.timestamp = cursor.getLong(COL_PRODUCT_EXPIRE_DATE);
+            mRetrievedImgPath = cursor.getString(COL_PRODUCT_IMG_PATH);
+            mPreInsertUri = null;
+            mLastUri = null;
+            Log.d(TAG, mName + " retrieved.");
+            cursor.close();
+        }
+    }
+
+    private void bindDataToViews() {
         if (mName != null && mName.length() > 0) mNameEditTxt.setText(mName);
         if (mFromEditTxt.timestamp != -1) mFromEditTxt.setText(Utils.getDateTimeString(mFromEditTxt.timestamp));
         if (mToEditTxt.timestamp != -1) mToEditTxt.setText(Utils.getDateTimeString(mToEditTxt.timestamp));
-        if (mCurrentPhotoPath != null && mCurrentPhotoPath.length() > 0) {
-            mImageView.loadImageFromFile(mCurrentPhotoPath);
+        if (mRetrievedImgPath != null) {
+            mImageView.loadImageFromFile(mRetrievedImgPath);
+        } else if (mLastUri != null) {
+            mImageView.loadImageFromFile(mLastUri.getPath());
         }
     }
 
@@ -126,7 +197,7 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
         Log.d(TAG, "onSaveInstanceState");
 
         mName = mNameEditTxt.getText().toString();
-        if (mName != null && mName.length() > 0) {
+        if (mName.length() > 0) {
             outState.putString(KEY_NAME, mName);
         }
         if (mFromEditTxt.timestamp != -1) {
@@ -135,51 +206,87 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
         if (mToEditTxt.timestamp != -1) {
             outState.putLong(KEY_EXPIRE_TIME, mToEditTxt.timestamp);
         }
-        if (mPhotoURI != null) {
-            outState.putParcelable(KEY_IMG_URI, mPhotoURI);
-        }
-        if (mCurrentPhotoPath != null && mCurrentPhotoPath.length() > 0) {
-            outState.putString(KEY_IMG_PATH, mCurrentPhotoPath);
-        }
 
+        if (mRetrievedImgPath != null && mRetrievedImgPath.length() > 0) {
+            outState.putString(KEY_RETRIEVED_IMG_PATH, mRetrievedImgPath);
+        }
+        if (mPreInsertUri != null) {
+            Log.d(TAG, "onSaveInstanceState mPreInsertUri = " + mPreInsertUri.toString());
+            outState.putParcelable(KEY_PREINSERT_URI, mPreInsertUri);
+        }
+        if (mLastUri != null) {
+            Log.d(TAG, "onSaveInstanceState mLastUri = " + mLastUri.toString());
+            outState.putParcelable(KEY_LAST_IMG_URI, mLastUri);
+        }
         super.onSaveInstanceState(outState);
-    }
-
-    private void initView(View rootView) {
-        mEditLayout = (FrameLayout) rootView.findViewById(R.id.product_edit_root);
-        mEditLayout.setOnTouchListener(this);
-
-        mImageFrameLayout = (FrameLayout) rootView.findViewById(R.id.product_image_frame);
-        mImageView = (ProductImageView) rootView.findViewById(R.id.product_image);
-
-        mNameEditTxt = (TextInputEditText) rootView.findViewById(R.id.product_name);
-
-        mFromEditTxt = (DatePickEditText) rootView.findViewById(R.id.created_time);
-        mFromEditTxt.setInputType(InputType.TYPE_NULL);
-        mToEditTxt = (DatePickEditText) rootView.findViewById(R.id.expired_time);
-        mToEditTxt.setInputType(InputType.TYPE_NULL);
-
-        mCancelBtn = (LinearLayout) rootView.findViewById(R.id.btn_cancel);
-        mSaveBtn = (LinearLayout) rootView.findViewById(R.id.btn_save);
-        setOnClickListeners(mImageFrameLayout, mFromEditTxt, mToEditTxt, mCancelBtn, mSaveBtn);
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        Log.d(TAG, "onActivityResult");
-        if (resultCode == getActivity().RESULT_OK && requestCode == REQUEST_IMAGE_CAPTURE) {
-            mImageView.loadImageAfterSave(mCurrentPhotoPath,
-                    mImageFrameLayout.getWidth(), mImageFrameLayout.getHeight());
+        Log.d(TAG, "onActivityResult " + resultCode + " " + requestCode);
+        if (resultCode == Activity.RESULT_OK && requestCode == REQUEST_IMAGE_CAPTURE) {
+            if (mLastUri != null) {
+                Log.d(TAG, "old mLastUri = " + mLastUri.toString());
+                Utils.deleteFile(mLastUri.getPath());
+                mLastUri = null;
+            }
+
+            if (data != null) mLastUri = data.getData();
+            if (mLastUri == null && mPreInsertUri != null) {
+                mLastUri = mPreInsertUri;
+                Log.d(TAG, "new mLastUri = " + mLastUri.toString());
+            }
+            mImageView.loadImageAfterSaveToUri(mLastUri);
         }
+
+        mPreInsertUri = null;
+    }
+
+    private void dispatchTakePictureIntent() {
+        Intent takePhotoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePhotoIntent.resolveActivity(getActivity().getPackageManager()) != null) {
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            if (photoFile != null) {
+                mPreInsertUri = Uri.fromFile(photoFile);
+                Log.d(TAG, "Input mPreInsertUri = " + mPreInsertUri.toString());
+                takePhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT, mPreInsertUri);
+                startActivityForResult(takePhotoIntent, REQUEST_IMAGE_CAPTURE);
+            }
+        }
+    }
+
+    @Nullable
+    private File createImageFile() throws IOException {
+        String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName =  "JPEG_" + timestamp + ".jpg";
+
+        File storageDir = getContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        if (storageDir == null) return null;
+
+//        File storageDir = getContext().getExternalCacheDir();
+        String path = storageDir.getAbsolutePath() + "/" + imageFileName;
+//        File image =  File.createTempFile(
+//                imageFileName,  /* prefix */
+//                ".jpg",         /* suffix */
+//                storageDir      /* directory */
+//        );
+//        mCurrentPhotoPath = image.getAbsolutePath();
+//        Log.d(TAG, "mCurrentPhotoPath = " + mCurrentPhotoPath);
+        return new File(path);
     }
 
     private void setDate(View v) {
         Calendar rightNow = Calendar.getInstance();
         DatePickerDialog dialog = new DatePickerDialog(getContext(),
                 (DatePickEditText)v,
-                rightNow.get(rightNow.YEAR),
-                rightNow.get(rightNow.MONTH),
-                rightNow.get(rightNow.DAY_OF_MONTH));
+                rightNow.get(Calendar.YEAR),
+                rightNow.get(Calendar.MONTH),
+                rightNow.get(Calendar.DAY_OF_MONTH));
 
         // Set limitation for a calendar when the other is set
         if (v == mToEditTxt && mFromEditTxt.timestamp != -1)
@@ -211,52 +318,18 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
         return false;
     }
 
-
-    private void hideSoftInput() {
-        InputMethodManager imm = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(getActivity().getCurrentFocus().getApplicationWindowToken(), 0);
-    }
-
-    private void dispatchTakePictureIntent() {
-        Intent takePhotoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if (takePhotoIntent.resolveActivity(getActivity().getPackageManager()) != null) {
-            File photoFile = null;
-            try {
-                photoFile = createImageFile();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            if (photoFile != null) {
-                mPhotoURI = Uri.fromFile(photoFile);
-                Log.d(TAG, "Input photoURI = " + mPhotoURI.toString());
-                takePhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT, mPhotoURI);
-                startActivityForResult(takePhotoIntent, REQUEST_IMAGE_CAPTURE);
-            }
-        }
-    }
-
-    private File createImageFile() throws IOException {
-        String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName =  "JPEG_" + timestamp + "_";
-        File storageDir = getContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        File image =  File.createTempFile(
-                imageFileName,  /* prefix */
-                ".jpg",         /* suffix */
-                storageDir      /* directory */
-        );
-        mCurrentPhotoPath = image.getAbsolutePath();
-        Log.d(TAG, "mCurrentPhotoPath = " + mCurrentPhotoPath);
-        return image;
-    }
-
     private void cancelEdit() {
-        startMainActivity();
+        if (mLastUri != null) {
+            Log.d(TAG, "delete: " + mLastUri.toString());
+            Utils.deleteFile(mLastUri.getPath());
+        }
+        getActivity().onBackPressed();
     }
 
     private void saveEdit() {
 
         mName = mNameEditTxt.getText().toString();
-        if (mName == null || mName.length() == 0) {
+        if (mName.length() == 0) {
             Toast.makeText(getContext(), "Product name is empty", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -268,11 +341,18 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
             Toast.makeText(getContext(), "Expire date is empty", Toast.LENGTH_SHORT).show();
             return;
         }
-
-        insertProduct(mName, mFromEditTxt.timestamp, mToEditTxt.timestamp, mCurrentPhotoPath);
-        Toast.makeText(getContext(), "Saved", Toast.LENGTH_SHORT).show();
-
+        String currentImgPath = mImageView.getPath();
+        if (mRetrievedImgPath != null && !mRetrievedImgPath.equals(currentImgPath)) {
+            Log.d(TAG, "delete " + mRetrievedImgPath);
+            Utils.deleteFile(mRetrievedImgPath);
+        }
+        saveProduct(mProductUri, mName, mFromEditTxt.timestamp, mToEditTxt.timestamp, currentImgPath);
         startMainActivity();
+    }
+
+    private void saveProduct(Uri productUri, String productName, long createTimestamp, long expireTimestamp, String imgPath) {
+        EditProductTask task = new EditProductTask(productUri);
+        task.execute(productName, Long.toString(createTimestamp), Long.toString(expireTimestamp), imgPath);
     }
 
     private void setOnClickListeners(View... views) {
@@ -281,21 +361,25 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
         }
     }
 
+    private void hideSoftInput() {
+        InputMethodManager imm = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(getActivity().getCurrentFocus().getApplicationWindowToken(), 0);
+    }
+
     private void startMainActivity() {
         Intent intent = new Intent(getContext(), MainActivity.class);
         startActivity(intent);
     }
 
-    private void insertProduct(String productName, long createTimestamp, long expireTimestamp, String imgPath) {
-        EditProductTask task = new EditProductTask();
-        task.execute(productName, Long.toString(createTimestamp), Long.toString(expireTimestamp), imgPath);
-    }
-
     private class EditProductTask extends AsyncTask<String, Void, Void> {
+        private Uri mUpdateUri;
+        EditProductTask(Uri productUri) {
+            mUpdateUri = productUri;
+        }
 
         @Override
         protected Void doInBackground(String... params) {
-            Log.d(TAG, "doInBackground");
+            Log.d("EditProductTask", "doInBackground");
             String productName = params[0];
             String createTimestamp = params[1];
             String expireTimestamp = params[2];
@@ -310,17 +394,19 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
                 contentValues.put(ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_IMG_PATH, imgPath);
             }
 
-            Uri productUri = ProductContract.ProductEntry.CONTENT_URI;
-            Uri newUri = getContext().getContentResolver().insert(productUri, contentValues);
-            Log.d(TAG, newUri.toString());
+            if (mUpdateUri != null) {
+                Log.d("EditProductTask", "update");
+                getContext().getContentResolver().update(mUpdateUri, contentValues, null, null);
+            } else {
+                Log.d("EditProductTask", "insert");
+                Uri contentUri = ProductContract.ProductEntry.CONTENT_URI;
+                Uri newUri = getContext().getContentResolver().insert(contentUri, contentValues);
+                Log.d("EditProductTask", newUri.toString());
+            }
+
             return null;
         }
 
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            Log.d(TAG, "onPostExecute");
-
-        }
     }
 
 }

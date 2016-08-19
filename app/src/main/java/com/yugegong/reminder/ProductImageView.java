@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -13,6 +14,8 @@ import android.widget.ImageView;
  * Created by ygong on 8/11/16.
  */
 public class ProductImageView extends ImageView{
+    public static final double HEIGHT_WIDTH_RATIO = 9/16;
+
     private final static String TAG = ProductImageView.class.getSimpleName();
     private int mTargetW, mTargetH;
     private String mPath;
@@ -26,13 +29,25 @@ public class ProductImageView extends ImageView{
             a.recycle();
         }
     }
-    public void setImagePath(String path) {
-        mPath = path;
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        int width = getMeasuredWidth();
+        int height = width * 3/4;
+        Log.d(TAG, "width = " + width + " height = " + height);
+        mTargetH = height;
+        mTargetW = width;
+        setMeasuredDimension(width, height);
     }
 
-    public void setTargetSize(int width, int height) {
-        mTargetW = width;
-        mTargetH = height;
+//    public void setTargetSize(int width, int height) {
+//        mTargetW = width;
+//        mTargetH = height;
+//    }
+
+    public String getPath() {
+        return mPath;
     }
 
     public boolean isImgLoaded() {
@@ -44,10 +59,11 @@ public class ProductImageView extends ImageView{
         requestLayout();
     }
 
-    public void loadImageAfterSave(String path, int targetW, int targetH) {
+    public void loadImageAfterSaveToUri(Uri uri) {
+        if (uri == null) return;
+        String path = uri.getPath();
+        if (path == null || path.length() == 0) return;
         mPath = path;
-        mTargetW = targetW;
-        mTargetH = targetH;
         SaveImageTask task = new SaveImageTask();
         task.execute(this);
     }
@@ -60,6 +76,8 @@ public class ProductImageView extends ImageView{
             imageView = imageViews[0];
             Bitmap bitmap = Utils.decodeBitmapFromFile(imageView.mPath,
                     imageView.mTargetW, imageView.mTargetH);
+            Log.d("SaveImageTask", bitmap.getWidth() + " " + bitmap.getHeight());
+
             Utils.saveBitmapFile(imageView.mPath, bitmap);
 
             return BitmapFactory.decodeFile(mPath);
@@ -72,11 +90,14 @@ public class ProductImageView extends ImageView{
                 Log.d(TAG, "bitmap is null, no image will be loaded");
                 return;
             }
+            Log.d("SaveImageTask", "imageView " + imageView.getWidth() + " " + imageView.getHeight());
             imageView.setImageBitmap(bitmap);
+            imageView.setScaleType(ScaleType.CENTER_CROP);
         }
     }
 
     public void loadImageFromFile(String path) {
+        if (path == null || path.length() == 0) return;
         mPath = path;
         LoadImageTask task = new LoadImageTask();
         task.execute(this);
@@ -86,19 +107,22 @@ public class ProductImageView extends ImageView{
         private ProductImageView imageView = null;
         @Override
         protected Bitmap doInBackground(ProductImageView... imageViews) {
-            Log.d(TAG, "doInBackground");
+            Log.d("LoadImageTask", "doInBackground");
             this.imageView = imageViews[0];
             return BitmapFactory.decodeFile(imageView.mPath);
         }
 
         @Override
         protected void onPostExecute(Bitmap bitmap) {
-            Log.d(TAG, "onPostExecute");
+            Log.d("LoadImageTask", "onPostExecute");
             if (bitmap == null) {
                 Log.d(TAG, "bitmap is null, no image will be loaded");
                 return;
             }
+            Log.d("LoadImageTask", "onPostExecute setImageBitmap " + imageView.mPath);
             imageView.setImageBitmap(bitmap);
+            imageView.setScaleType(ScaleType.CENTER_CROP);
+
         }
 
     }

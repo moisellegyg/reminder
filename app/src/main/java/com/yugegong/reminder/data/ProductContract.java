@@ -3,6 +3,7 @@ package com.yugegong.reminder.data;
 import android.content.ContentResolver;
 import android.net.Uri;
 import android.provider.BaseColumns;
+import android.util.Log;
 
 /**
  * Created by ygong on 8/9/16.
@@ -21,22 +22,27 @@ public final class ProductContract {
                 .appendPath(PATH_PRODUCT)
                 .build();
 
-        // For single record
+        // For multiple records
         public static final String CONTENT_DIR_TYPE =
                 ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd." + CONTENT_AUTHORITY + "." + PATH_PRODUCT;
+        // For single record
         public static final String CONTENT_ITEM_TYPE =
                 ContentResolver.CURSOR_ITEM_BASE_TYPE + "/vnd." + CONTENT_AUTHORITY + "." + PATH_PRODUCT;
 
-        // For multiple records
         public static final String TABLE_NAME = "product";
+
         public static final String COLUMN_NAME_PRODUCT_UPC = "upc";
         public static final String COLUMN_NAME_PRODUCT_NAME = "name";
-        public static final String COLUMN_NAME_PRODUCT_IMG_PATH = "img_uri";
+        public static final String COLUMN_NAME_PRODUCT_IMG_PATH = "path";
         public static final String COLUMN_NAME_PRODUCT_CREATE_DATE = "create_date";
         public static final String COLUMN_NAME_PRODUCT_EXPIRE_DATE = "expire_date";
 
-        public static Uri buildProductUri(long _ID) {
-            return CONTENT_URI.buildUpon().appendPath(Long.toString(_ID)).build();
+        public static Uri buildProductUri(long _id) {
+            return CONTENT_URI.buildUpon().appendPath(Long.toString(_id)).build();
+        }
+        public static long getIdFromUri(Uri uri) {
+            Log.d("ProductContract", uri.toString());
+            return Long.parseLong(uri.getPathSegments().get(1));
         }
     }
 }

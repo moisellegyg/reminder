@@ -6,7 +6,9 @@
     android:id="@+id/card_view"
     android:layout_gravity="center"
     android:layout_width="match_parent"
-    android:layout_height="256dp"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="8dp"
+    android:layout_marginRight="8dp"
     android:layout_marginBottom="16dp"
     card_view:cardCornerRadius="4dp"
     android:clickable="true"
@@ -25,7 +27,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:scaleType="centerCrop"
-                android:src="@drawable/burger"/>
+                android:src="@drawable/burger"
+                android:transitionName="@string/transition_product_img"/>
             <TextView
                 android:id="@+id/product_name"
                 android:layout_width="match_parent"

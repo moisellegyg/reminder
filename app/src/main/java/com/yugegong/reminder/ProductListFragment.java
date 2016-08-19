@@ -1,5 +1,6 @@
 package com.yugegong.reminder;
 
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -7,6 +8,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -19,8 +21,8 @@ import com.yugegong.reminder.data.ProductContract;
 /**
  * A placeholder fragment containing a simple view.
  */
-public class MainActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
-    private final static String TAG = MainActivityFragment.class.getSimpleName();
+public class ProductListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+    private final static String TAG = ProductListFragment.class.getSimpleName();
     private final static int LOADER_ID = 0;
 
     private RecyclerView mRecyclerView;
@@ -28,7 +30,6 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
 
     private ReminderAdapter mReminderAdapter;
     private RecyclerView.LayoutManager mLayoutManger;
-    private static String[] GOODS = {"Apple", "Pear", "Milk", "Soda"};
 
     private static final String[] PRODUCT_COLUMNS = {
             ProductContract.ProductEntry._ID,
@@ -46,7 +47,11 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     public static final int COL_PRODUCT_CREATE_DATE = 4;
     public static final int COL_PRODUCT_EXPIRE_DATE = 5;
 
-    public MainActivityFragment() {
+    public ProductListFragment() {
+    }
+
+    public interface ProductListFragmentCallback {
+        void onItemSelected(ReminderAdapter.ViewHolder vh, long _id);
     }
 
     public ReminderAdapter getReminderAdapter() {
@@ -58,11 +63,22 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
                              Bundle savedInstanceState) {
         Log.d(TAG, "onCreateView");
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-        Log.d(TAG, rootView.getTag().toString());
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.recyclerview_reminders);
-        mReminderAdapter = new ReminderAdapter(getContext());
+        mReminderAdapter = new ReminderAdapter(getContext(), new ReminderAdapter.ReminderAdapterOnClickHandler() {
+            @Override
+            public void onClick(ReminderAdapter.ViewHolder vh, long _id) {
+                mPosition = vh.getAdapterPosition();
+                Log.v(TAG, "onClick mPosition = " + mPosition + " " + _id);
+                ((ProductListFragmentCallback)getActivity()).onItemSelected(vh, _id);
+            }
+        });
         mRecyclerView.setAdapter(mReminderAdapter);
-        mLayoutManger = new LinearLayoutManager(getContext());
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+            mLayoutManger = new LinearLayoutManager(getContext());
+        } else {
+            mLayoutManger = new GridLayoutManager(getContext(), 2);
+        }
+
         mRecyclerView.setLayoutManager(mLayoutManger);
 
         /*

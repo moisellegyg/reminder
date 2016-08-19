@@ -1,15 +1,20 @@
 package com.yugegong.reminder;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-public class MainActivity extends AppCompatActivity {
+import com.yugegong.reminder.data.ProductContract;
+
+public class MainActivity extends AppCompatActivity implements ProductListFragment.ProductListFragmentCallback {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,14 +27,12 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-//                        .setAction("Action", null).show();
                 Intent intent = new Intent(getApplicationContext(), ProductEditActivity.class);
                 startActivity(intent);
             }
         });
 
-        Utils.setMetrics(this);
+        Utils.setMetrics(getResources());
     }
 
     @Override
@@ -52,5 +55,20 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onItemSelected(ReminderAdapter.ViewHolder vh, long _id) {
+        Uri productUri = ProductContract.ProductEntry.buildProductUri(_id);
+        Intent editIntent = new Intent(this, ProductEditActivity.class);
+        editIntent.setData(productUri);
+
+        String transitionName = getString(R.string.transition_product_img);
+        ActivityOptionsCompat options =
+                ActivityOptionsCompat.makeSceneTransitionAnimation(this,
+                        vh.mImageView,   // The view which starts the transition
+                        transitionName    // The transitionName of the view we’re transitioning to
+                );
+        ActivityCompat.startActivity(this, editIntent, options.toBundle());
     }
 }
