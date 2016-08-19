@@ -55,7 +55,6 @@ public class ProductListFragment extends Fragment implements LoaderManager.Loade
         Log.d(TAG, "onCreate");
         super.onCreate(savedInstanceState);
         // retain this fragment
-        setRetainInstance(true);
     }
 
     public interface ProductListFragmentCallback {

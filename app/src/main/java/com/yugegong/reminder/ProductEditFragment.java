@@ -113,8 +113,14 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
     public void onCreate(@Nullable Bundle savedInstanceState) {
         Log.d(TAG, "onCreate");
         super.onCreate(savedInstanceState);
-        // retain this fragment
-        setRetainInstance(true);
+        /*
+          Should not call to retain this fragment since it's fragment with UI and will cause a memory
+          leak if you don't set all the views' references to null when the Fragment calls onDestroyView.
+          Better to call setRetainInstance(true) when it's a fragment without UI.
+          https://developer.android.com/guide/topics/resources/runtime-changes.html#HandlingTheChange
+//        setRetainInstance(true);
+         */
+
     }
 
     @Override
