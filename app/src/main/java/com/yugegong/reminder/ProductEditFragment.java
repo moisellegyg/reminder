@@ -110,28 +110,21 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
     }
 
     @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        Log.d(TAG, "onCreate");
+        super.onCreate(savedInstanceState);
+        // retain this fragment
+        setRetainInstance(true);
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         Log.d(TAG, "onCreateView");
-        setRetainInstance(true);
 
         View rootView = inflater.inflate(R.layout.fragment_product_edit, container, false);
         bindViews(rootView);
         setOnClickListeners(mImageFrameLayout, mFromEditTxt, mToEditTxt, mCancelBtn, mSaveBtn);
         return rootView;
-    }
-
-    private void bindViews(View rootView) {
-        mEditLayout = (FrameLayout) rootView.findViewById(R.id.product_edit_root);
-        mEditLayout.setOnTouchListener(this);
-        mImageFrameLayout = (FrameLayout) rootView.findViewById(R.id.product_image_frame);
-        mImageView = (ProductImageView) rootView.findViewById(R.id.product_image);
-        mNameEditTxt = (TextInputEditText) rootView.findViewById(R.id.product_name);
-        mFromEditTxt = (DatePickEditText) rootView.findViewById(R.id.created_time);
-        mFromEditTxt.setInputType(InputType.TYPE_NULL);
-        mToEditTxt = (DatePickEditText) rootView.findViewById(R.id.expired_time);
-        mToEditTxt.setInputType(InputType.TYPE_NULL);
-        mCancelBtn = (LinearLayout) rootView.findViewById(R.id.btn_cancel);
-        mSaveBtn = (LinearLayout) rootView.findViewById(R.id.btn_save);
     }
 
     @Override
@@ -152,6 +145,31 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
             }
         }
         bindDataToViews();
+    }
+
+    private void bindViews(View rootView) {
+        mEditLayout = (FrameLayout) rootView.findViewById(R.id.product_edit_root);
+        mEditLayout.setOnTouchListener(this);
+        mImageFrameLayout = (FrameLayout) rootView.findViewById(R.id.product_image_frame);
+        mImageView = (ProductImageView) rootView.findViewById(R.id.product_image);
+        mNameEditTxt = (TextInputEditText) rootView.findViewById(R.id.product_name);
+        mFromEditTxt = (DatePickEditText) rootView.findViewById(R.id.created_time);
+        mFromEditTxt.setInputType(InputType.TYPE_NULL);
+        mToEditTxt = (DatePickEditText) rootView.findViewById(R.id.expired_time);
+        mToEditTxt.setInputType(InputType.TYPE_NULL);
+        mCancelBtn = (LinearLayout) rootView.findViewById(R.id.btn_cancel);
+        mSaveBtn = (LinearLayout) rootView.findViewById(R.id.btn_save);
+    }
+
+    private void bindDataToViews() {
+        if (mName != null && mName.length() > 0) mNameEditTxt.setText(mName);
+        if (mFromEditTxt.timestamp != -1) mFromEditTxt.setText(Utils.getDateTimeString(mFromEditTxt.timestamp));
+        if (mToEditTxt.timestamp != -1) mToEditTxt.setText(Utils.getDateTimeString(mToEditTxt.timestamp));
+        if (mRetrievedImgPath != null) {
+            mImageView.loadImageFromFile(mRetrievedImgPath);
+        } else if (mLastUri != null) {
+            mImageView.loadImageFromFile(mLastUri.getPath());
+        }
     }
 
     private void restoreInstanceState(Bundle savedInstanceState) {
@@ -178,17 +196,6 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
             mLastUri = null;
             Log.d(TAG, mName + " retrieved.");
             cursor.close();
-        }
-    }
-
-    private void bindDataToViews() {
-        if (mName != null && mName.length() > 0) mNameEditTxt.setText(mName);
-        if (mFromEditTxt.timestamp != -1) mFromEditTxt.setText(Utils.getDateTimeString(mFromEditTxt.timestamp));
-        if (mToEditTxt.timestamp != -1) mToEditTxt.setText(Utils.getDateTimeString(mToEditTxt.timestamp));
-        if (mRetrievedImgPath != null) {
-            mImageView.loadImageFromFile(mRetrievedImgPath);
-        } else if (mLastUri != null) {
-            mImageView.loadImageFromFile(mLastUri.getPath());
         }
     }
 
@@ -407,6 +414,18 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
             return null;
         }
 
+    }
+
+    @Override
+    public void onDestroy(){
+        Log.d(TAG, "onDestroy");
+        super.onDestroy();
+    }
+
+    @Override
+    public void onStop(){
+        Log.d(TAG, "onStop");
+        super.onStop();
     }
 
 }

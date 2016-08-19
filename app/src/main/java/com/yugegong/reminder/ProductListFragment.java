@@ -50,6 +50,14 @@ public class ProductListFragment extends Fragment implements LoaderManager.Loade
     public ProductListFragment() {
     }
 
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        Log.d(TAG, "onCreate");
+        super.onCreate(savedInstanceState);
+        // retain this fragment
+        setRetainInstance(true);
+    }
+
     public interface ProductListFragmentCallback {
         void onItemSelected(ReminderAdapter.ViewHolder vh, long _id);
     }
@@ -90,6 +98,17 @@ public class ProductListFragment extends Fragment implements LoaderManager.Loade
     }
 
     @Override
+    public void onDestroy(){
+        Log.d(TAG, "onDestroy");
+        super.onDestroy();
+    }
+
+    @Override
+    public void onStop(){
+        Log.d(TAG, "onStop");
+        super.onStop();
+    }
+    @Override
     public Loader onCreateLoader(int id, Bundle args) {
         Log.d(TAG, "onCreateLoader");
         switch (id) {
@@ -120,4 +139,6 @@ public class ProductListFragment extends Fragment implements LoaderManager.Loade
         Log.d(TAG, "onLoaderReset");
         mReminderAdapter.swapCursor(null);
     }
+
+
 }
