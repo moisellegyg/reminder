@@ -3,6 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:tag="cardview"
     android:id="@+id/card_view"
     android:layout_gravity="center"
     android:layout_width="match_parent"
@@ -10,14 +11,14 @@
     android:layout_marginLeft="8dp"
     android:layout_marginRight="8dp"
     android:layout_marginBottom="16dp"
-    card_view:cardCornerRadius="4dp"
-    android:clickable="true"
+    card_view:cardCornerRadius="8dp"
     android:foreground="@drawable/touch_ripple">
     <LinearLayout
         android:tag="item_root"
         android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:background="@drawable/list_stats_drawable">
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"

@@ -71,6 +71,7 @@ public class ProductListFragment extends Fragment implements LoaderManager.Loade
         Log.d(TAG, "onCreateView");
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.recyclerview_reminders);
+        mRecyclerView.setHasFixedSize(true);
         mReminderAdapter = new ReminderAdapter(getContext(), new ReminderAdapter.ReminderAdapterOnClickHandler() {
             @Override
             public void onClick(ReminderAdapter.ViewHolder vh, long _id) {
@@ -78,6 +79,7 @@ public class ProductListFragment extends Fragment implements LoaderManager.Loade
                 Log.v(TAG, "onClick mPosition = " + mPosition + " " + _id);
                 ((ProductListFragmentCallback)getActivity()).onItemSelected(vh, _id);
             }
+
         });
         mRecyclerView.setAdapter(mReminderAdapter);
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {

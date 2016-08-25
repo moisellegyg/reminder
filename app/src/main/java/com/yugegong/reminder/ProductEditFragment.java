@@ -381,7 +381,9 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
 
     private void startMainActivity() {
         Intent intent = new Intent(getContext(), MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
+
     }
 
     private class EditProductTask extends AsyncTask<String, Void, Void> {

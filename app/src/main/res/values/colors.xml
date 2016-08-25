@@ -5,4 +5,6 @@
     <color name="colorAccent">@android:color/holo_orange_light</color>
     <color name="colorBackground">#e0e0e0</color>
     <color name="transparent_colorPrimary">#9933b5e5</color>
+    <color name="transparent">#00000000</color>
+
 </resources>

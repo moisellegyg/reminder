@@ -14,7 +14,6 @@ import android.util.Log;
  */
 public class ProductProvider extends ContentProvider {
     private final static String TAG = ProductProvider.class.getSimpleName();
-
     // Defines a handle to the database helper object.
     private ProductDbHelper mProductDbHelper;
     // Holds the database object
@@ -22,6 +21,9 @@ public class ProductProvider extends ContentProvider {
 
     private static final int CODE_PRODUCTS = 100;
     private static final int CODE_PRODUCT_ITEM = 101;
+
+    public static final String PRODUCT_ID_SELECTION = ProductContract.ProductEntry._ID + " = ? ";
+
 
     // Defines UriMatcher for ProductProvider
     private static UriMatcher mUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
@@ -58,6 +60,7 @@ public class ProductProvider extends ContentProvider {
             default:
                 cursor = null;
         }
+        cursor.setNotificationUri(getContext().getContentResolver(),uri);
         return  cursor;
     }
 
