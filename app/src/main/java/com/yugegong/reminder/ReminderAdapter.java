@@ -26,7 +26,7 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
     private final Context mContext;
 
     private Cursor mCursor;
-
+    private ActionMode mActionMode;
     private MultiSelector mMultiSelector = new MultiSelector();
     private ModalMultiChoiceCallback mActionModeCallback = new ModalMultiChoiceCallback(mMultiSelector) {
 
@@ -36,7 +36,6 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
             // Inflate a menu resource providing context menu items
 //            ((AppCompatActivity) mContext).getMenuInflater().inflate(R.menu.action_mode_menu, menu);
             mode.getMenuInflater().inflate(R.menu.action_mode_menu, menu);
-            mode.setTitle("Selected");
             return true;
         }
 
@@ -113,7 +112,7 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
             int position = getAdapterPosition();
             if (mCursor.moveToPosition(position)) {
                 long _id = mCursor.getLong(ProductListFragment.COL_PRODUCT_ID);
-                if (!mMultiSelector.toggleItemSelection(this, position, _id)) {
+                if (!toggleItemSelection(this, position, _id)) {
                     mOnClickHandler.onClick(this, _id);
                 }
             }
@@ -126,9 +125,10 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
             if (mCursor.moveToPosition(position)) {
                 long _id = mCursor.getLong(ProductListFragment.COL_PRODUCT_ID);
                 if (!mMultiSelector.isSelectable()) {
-                    ((AppCompatActivity) mContext).startSupportActionMode(mActionModeCallback);
+                    mActionMode = ((AppCompatActivity) mContext).startSupportActionMode(mActionModeCallback);
                     // The first checked item in multi choice mode
                     mMultiSelector.setItemSelected(this, position, _id, true);
+                    updateActionModeTitle();
                     return true;
                 }
             }
@@ -139,6 +139,22 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
 
     public interface ReminderAdapterOnClickHandler {
         void onClick(ViewHolder viewHolder, long _id);
+    }
+
+    private boolean toggleItemSelection(MultiSelectableHolder holder, int position, long _id) {
+        boolean success = mMultiSelector.toggleItemSelection(holder, position, _id);
+        if (success) {
+            updateActionModeTitle();
+        }
+        return success;
+    }
+
+    private void updateActionModeTitle() {
+        if (mActionMode == null) return;
+        int count = mMultiSelector.getCheckedItemCount();
+        String title = mContext.getResources()
+                .getQuantityString(R.plurals.number_of_items_selected, count, count);
+        mActionMode.setTitle(title);
     }
 
     @Override

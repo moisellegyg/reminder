@@ -9,8 +9,8 @@
     <string name="transition_product_img" translatable="false">transition_product_img</string>
     
     <plurals name="number_of_items_selected">
-        <item quantity="zero">%1$d</item>
-        <item quantity="one">%1$d</item>
-        <item quantity="other">%1$d</item>
+        <item quantity="zero">%1$d selected</item>
+        <item quantity="one">%1$d selected</item>
+        <item quantity="other">%1$d selected</item>
     </plurals>
 </resources>

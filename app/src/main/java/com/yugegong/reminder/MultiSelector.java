@@ -21,6 +21,7 @@ public class MultiSelector {
     private SparseBooleanArray mCheckStats = new SparseBooleanArray();
     private SparseLongArray mCheckIdStats = new SparseLongArray();
     private WeakHolderTracker mTracker = new WeakHolderTracker();
+    private int mSelectedCount = 0;
 
     private boolean mIsSelectable;
 
@@ -34,11 +35,6 @@ public class MultiSelector {
         refreshAllHolders();
     }
 
-//    public void setItemChecked(int position, boolean isChecked) {
-//        mCheckStats.put(position, isChecked);
-//
-//    }
-
     public boolean isItemSelected(int position) {
         return mCheckStats.get(position, false);
     }
@@ -46,6 +42,7 @@ public class MultiSelector {
     public void setItemSelected(MultiSelectableHolder holder, int position, long _id, boolean isSelected) {
         mCheckStats.put(position, isSelected);
         mCheckIdStats.put(position, _id);
+        mSelectedCount += isSelected ? 1 : -1;
         refreshHolder(holder);
     }
 
@@ -66,11 +63,12 @@ public class MultiSelector {
     public void clearSelections() {
         mCheckStats.clear();
         mCheckIdStats.clear();
+        mSelectedCount = 0;
         refreshAllHolders();
     }
 
     public int getCheckedItemCount() {
-        return mCheckStats.size();
+        return mSelectedCount;
     }
 
     public void bindHolder(MultiSelectableHolder holder, int position) {
