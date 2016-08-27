@@ -4,6 +4,7 @@ import android.content.res.Configuration;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -13,6 +14,9 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -51,18 +55,13 @@ public class ProductListFragment extends Fragment implements LoaderManager.Loade
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        Log.d(TAG, "onCreate");
+    public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // retain this fragment
+        setHasOptionsMenu(true);
     }
 
     public interface ProductListFragmentCallback {
-        void onItemSelected(ReminderAdapter.ViewHolder vh, long _id);
-    }
-
-    public ReminderAdapter getReminderAdapter() {
-        return mReminderAdapter;
+        void onItemSelected(ReminderAdapter.ViewHolder vh);
     }
 
     @Override
@@ -72,14 +71,13 @@ public class ProductListFragment extends Fragment implements LoaderManager.Loade
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.recyclerview_reminders);
         mRecyclerView.setHasFixedSize(true);
-        mReminderAdapter = new ReminderAdapter(getContext(), new ReminderAdapter.ReminderAdapterOnClickHandler() {
+        mReminderAdapter = new ReminderAdapter(getContext(), new ReminderAdapter.OnItemClickedListener() {
             @Override
-            public void onClick(ReminderAdapter.ViewHolder vh, long _id) {
+            public void onItemSelected(ReminderAdapter.ViewHolder vh) {
                 mPosition = vh.getAdapterPosition();
-                Log.v(TAG, "onClick mPosition = " + mPosition + " " + _id);
-                ((ProductListFragmentCallback)getActivity()).onItemSelected(vh, _id);
+                Log.v(TAG, "onClick mPosition = " + mPosition);
+                ((ProductListFragmentCallback)getActivity()).onItemSelected(vh);
             }
-
         });
         mRecyclerView.setAdapter(mReminderAdapter);
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
@@ -99,16 +97,41 @@ public class ProductListFragment extends Fragment implements LoaderManager.Loade
     }
 
     @Override
-    public void onDestroy(){
-        Log.d(TAG, "onDestroy");
-        super.onDestroy();
+    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
+        Log.d(TAG, "onViewStateRestored");
+        super.onViewStateRestored(savedInstanceState);
+        if (savedInstanceState != null) {
+            Bundle bundle = savedInstanceState.getBundle(TAG);
+            mReminderAdapter.restoreMultiSelectorStats(bundle);
+        }
     }
 
     @Override
-    public void onStop(){
-        Log.d(TAG, "onStop");
-        super.onStop();
+    public void onSaveInstanceState(Bundle outState) {
+        Log.d(TAG, "onSaveInstanceState");
+        Bundle bundle = mReminderAdapter.saveMultiSelectorStats();
+        if (bundle != null) {
+            outState.putBundle(TAG, bundle);
+        }
+        super.onSaveInstanceState(outState);
+
     }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.menu_main, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.action_settings) {
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
     @Override
     public Loader onCreateLoader(int id, Bundle args) {
         Log.d(TAG, "onCreateLoader");

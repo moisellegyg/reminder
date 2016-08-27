@@ -19,6 +19,7 @@ public class ModalMultiChoiceCallback implements ActionMode.Callback {
 
     @Override
     public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+        Log.d(LOG_TAG, "onCreateActionMode");
         mMultiSelector.setSelectable(true);
         return false;
     }

@@ -2,6 +2,7 @@ package com.yugegong.reminder;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.RecyclerView;
@@ -19,13 +20,37 @@ import com.yugegong.reminder.data.ProductProvider;
 /**
  * Created by ygong on 8/3/16.
  */
-public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHolder>{
+public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHolder> implements MultiSelector.MultiSelectorListener{
     private final static String TAG = ReminderAdapter.class.getSimpleName();
 
-    private final ReminderAdapterOnClickHandler mOnClickHandler;
+    private final OnItemClickedListener mOnItemClickedListener;
     private final Context mContext;
-
     private Cursor mCursor;
+
+    public ReminderAdapter(Context context, OnItemClickedListener listener) {
+        mContext = context;
+        mOnItemClickedListener = listener;
+        setHasStableIds(true);
+    }
+
+    @Override
+    public Bundle saveMultiSelectorStats() {
+        return mMultiSelector.saveSelectionStats();
+    }
+
+    @Override
+    public void restoreMultiSelectorStats(Bundle savedStats) {
+        mMultiSelector.restoreSelectionStats(savedStats);
+        if (mMultiSelector.isSelectable()) {
+            mActionMode = ((AppCompatActivity) mContext).startSupportActionMode(mActionModeCallback);
+            updateActionModeTitle();
+        }
+    }
+
+    public interface OnItemClickedListener {
+        void onItemSelected(ViewHolder viewHolder);
+    }
+
     private ActionMode mActionMode;
     private MultiSelector mMultiSelector = new MultiSelector();
     private ModalMultiChoiceCallback mActionModeCallback = new ModalMultiChoiceCallback(mMultiSelector) {
@@ -34,7 +59,6 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
             super.onCreateActionMode(mode, menu);
             // Inflate a menu resource providing context menu items
-//            ((AppCompatActivity) mContext).getMenuInflater().inflate(R.menu.action_mode_menu, menu);
             mode.getMenuInflater().inflate(R.menu.action_mode_menu, menu);
             return true;
         }
@@ -66,12 +90,6 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
         }
     };
 
-    public ReminderAdapter(Context context, ReminderAdapterOnClickHandler handler) {
-        mContext = context;
-        mOnClickHandler = handler;
-        setHasStableIds(true);
-    }
-
     public class ViewHolder extends MultiSelectableHolder
             implements View.OnClickListener, View.OnLongClickListener {
 
@@ -83,7 +101,6 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
         public ViewHolder(View itemView){
             super(itemView, mMultiSelector);
             mImageView = (ProductImageView) itemView.findViewById(R.id.product_image);
-//            mImageView.setTargetSize(Utils.displayWidthPixels(), Utils.convertDpToPixels(192));
             mNameTextView = (TextView) itemView.findViewById(R.id.product_name);
             mCreateDateTextView = (TextView) itemView.findViewById(R.id.item_create_date);
             mExpireDateTextView = (TextView) itemView.findViewById(R.id.item_expire_date);
@@ -110,11 +127,8 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
         @Override
         public void onClick(View v) {
             int position = getAdapterPosition();
-            if (mCursor.moveToPosition(position)) {
-                long _id = mCursor.getLong(ProductListFragment.COL_PRODUCT_ID);
-                if (!toggleItemSelection(this, position, _id)) {
-                    mOnClickHandler.onClick(this, _id);
-                }
+            if (!toggleItemSelection(this, position, getItemId())) {
+                mOnItemClickedListener.onItemSelected(this);
             }
         }
 
@@ -122,23 +136,16 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
         public boolean onLongClick(View v) {
             Log.d("VH", "onLongClick");
             int position = getAdapterPosition();
-            if (mCursor.moveToPosition(position)) {
-                long _id = mCursor.getLong(ProductListFragment.COL_PRODUCT_ID);
-                if (!mMultiSelector.isSelectable()) {
-                    mActionMode = ((AppCompatActivity) mContext).startSupportActionMode(mActionModeCallback);
-                    // The first checked item in multi choice mode
-                    mMultiSelector.setItemSelected(this, position, _id, true);
-                    updateActionModeTitle();
-                    return true;
-                }
+            if (!mMultiSelector.isSelectable()) {
+                mActionMode = ((AppCompatActivity) mContext).startSupportActionMode(mActionModeCallback);
+                // The first checked item in multi choice mode
+                mMultiSelector.setItemSelected(this, position, getItemId(), true);
+                updateActionModeTitle();
+                return true;
             }
 
             return false;
         }
-    }
-
-    public interface ReminderAdapterOnClickHandler {
-        void onClick(ViewHolder viewHolder, long _id);
     }
 
     private boolean toggleItemSelection(MultiSelectableHolder holder, int position, long _id) {
@@ -151,7 +158,7 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
 
     private void updateActionModeTitle() {
         if (mActionMode == null) return;
-        int count = mMultiSelector.getCheckedItemCount();
+        int count = mMultiSelector.getSelectedItemCount();
         String title = mContext.getResources()
                 .getQuantityString(R.plurals.number_of_items_selected, count, count);
         mActionMode.setTitle(title);

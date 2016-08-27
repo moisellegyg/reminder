@@ -10,7 +10,6 @@ public abstract class MultiSelectableHolder extends RecyclerView.ViewHolder {
     private final MultiSelector mMultiSelector;
 
     private boolean mIsSelectable = false;
-    private long _id = -1;
 
     public MultiSelectableHolder(View itemView, MultiSelector selector) {
         super(itemView);
@@ -47,6 +46,6 @@ public abstract class MultiSelectableHolder extends RecyclerView.ViewHolder {
     }
 
     protected void onBindSelector(){
-        mMultiSelector.bindHolder(this, getAdapterPosition());
+        mMultiSelector.bindHolder(this, getAdapterPosition(), getItemId());
     }
 }

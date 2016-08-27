@@ -1,5 +1,6 @@
 package com.yugegong.reminder;
 
+import android.os.Bundle;
 import android.util.Log;
 import android.util.SparseArray;
 import android.util.SparseBooleanArray;
@@ -14,6 +15,9 @@ import java.util.List;
  */
 public class MultiSelector {
     private static final String LOG_TAG = MultiSelector.class.getSimpleName();
+    private static final String KEY_SELECTED_POSITIONS = "positions";
+    private static final String KEY_SELECTOR_STATE = "state";
+
 
     /**
      * Running state of which positions are currently checked
@@ -24,6 +28,11 @@ public class MultiSelector {
     private int mSelectedCount = 0;
 
     private boolean mIsSelectable;
+
+    public interface MultiSelectorListener {
+        Bundle saveMultiSelectorStats();
+        void restoreMultiSelectorStats(Bundle savedStats);
+    }
 
 
     public boolean isSelectable() {
@@ -49,7 +58,7 @@ public class MultiSelector {
     public boolean toggleItemSelection(MultiSelectableHolder holder, int position, long _id) {
         if (mIsSelectable) {
             boolean isSelected = isItemSelected(position);
-            Log.d(LOG_TAG, position + " isSelected = " + isSelected);
+            Log.d(LOG_TAG, position + "/" + _id + " isSelected = " + isSelected);
             setItemSelected(holder, position, _id, !isSelected);
             return true;
         }
@@ -60,6 +69,11 @@ public class MultiSelector {
         return mCheckIdStats.get(position, -1);
     }
 
+    private long getHolderId(int position) {
+        MultiSelectableHolder holder = mTracker.getHolder(position);
+        return holder != null ? holder.getItemId() : -1;
+    }
+
     public void clearSelections() {
         mCheckStats.clear();
         mCheckIdStats.clear();
@@ -67,12 +81,12 @@ public class MultiSelector {
         refreshAllHolders();
     }
 
-    public int getCheckedItemCount() {
+    public int getSelectedItemCount() {
         return mSelectedCount;
     }
 
-    public void bindHolder(MultiSelectableHolder holder, int position) {
-        Log.d(LOG_TAG, "Bind holder " + position);
+    public void bindHolder(MultiSelectableHolder holder, int position, long _id) {
+        Log.d(LOG_TAG, "Bind holder " + position + " _id = " + _id);
         mTracker.bindHolder(position, holder);
         refreshHolder(holder);
     }
@@ -91,6 +105,47 @@ public class MultiSelector {
         boolean isSelected = mCheckStats.get(holder.getAdapterPosition(), false);
         Log.d(LOG_TAG, "refresh " + holder.getAdapterPosition() + " isSelected = " + isSelected + " " + mCheckStats.size());
         holder.setActivated(isSelected);
+    }
+
+    public Bundle saveSelectionStats() {
+        Log.d(LOG_TAG, "saveSelectionStats");
+        Bundle bundle = new Bundle();
+        bundle.putIntegerArrayList(KEY_SELECTED_POSITIONS,
+                (ArrayList<Integer>)getSelectedPositions());
+        bundle.putBoolean(KEY_SELECTOR_STATE, mIsSelectable);
+        return bundle;
+    }
+
+    public void restoreSelectionStats(Bundle savedStats) {
+        Log.d(LOG_TAG, "restoreSelectionStats");
+        if (savedStats == null) return;
+        mIsSelectable = savedStats.getBoolean(KEY_SELECTOR_STATE);
+        restoreSelectedPositions(savedStats.getIntegerArrayList(KEY_SELECTED_POSITIONS));
+    }
+
+    private void restoreSelectedPositions(List<Integer> positions) {
+        if (positions == null) return;
+        mCheckStats.clear();
+        for (int position : positions) {
+            mCheckStats.put(position, true);
+            long _id = getHolderId(position);
+            Log.d(LOG_TAG, "restore _id = " + _id);
+            mCheckIdStats.put(position, _id);
+        }
+        mSelectedCount = positions.size();
+        refreshAllHolders();
+    }
+
+    private List<Integer> getSelectedPositions() {
+        List<Integer> positions = new ArrayList<>();
+        int n = mCheckStats.size();
+        for (int i = 0; i < n; i++) {
+            if (mCheckStats.valueAt(i)) {
+                Log.d(LOG_TAG, "getSelectedPositions " + i);
+                positions.add(mCheckStats.keyAt(i));
+            }
+        }
+        return positions;
     }
 
     private static class WeakHolderTracker {
@@ -126,5 +181,6 @@ public class MultiSelector {
 
         }
     }
+
 
 }
