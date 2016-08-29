@@ -8,10 +8,8 @@
     android:layout_gravity="center"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginLeft="8dp"
-    android:layout_marginRight="8dp"
-    android:layout_marginBottom="16dp"
-    card_view:cardCornerRadius="8dp"
+    android:layout_margin="8dp"
+    card_view:cardCornerRadius="@dimen/cardview_radius"
     android:foreground="@drawable/touch_ripple">
     <LinearLayout
         android:tag="item_root"
