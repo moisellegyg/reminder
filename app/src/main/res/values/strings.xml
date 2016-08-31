@@ -3,7 +3,11 @@
     <string name="action_settings">Settings</string>
     <string name="action_delete">Delete</string>
 
+    <string name="menu_cancel">Cancel</string>
+    <string name="menu_save">Save</string>
+
     <string name="img_loaded_flag" translatable="false">true</string>
+
 
     <string name="product_provider_authority" translatable="false">com.yugegong.reminder.productprovider</string>
     <string name="transition_product_img" translatable="false">transition_product_img</string>

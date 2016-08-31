@@ -28,6 +28,7 @@ public class MainActivity extends AppCompatActivity implements ProductListFragme
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(getApplicationContext(), ProductEditActivity.class);
+                intent.putExtra(ProductEditFragment.INTENT_EXTRA_DISABLE_DELETE_MENU_OPTION, true);
                 startActivity(intent);
             }
         });
@@ -68,6 +69,7 @@ public class MainActivity extends AppCompatActivity implements ProductListFragme
         long _id = vh.getItemId();
         Uri productUri = ProductContract.ProductEntry.buildProductUri(_id);
         Intent editIntent = new Intent(this, ProductEditActivity.class);
+        editIntent.putExtra(ProductEditFragment.INTENT_EXTRA_DISABLE_DELETE_MENU_OPTION, false);
         editIntent.setData(productUri);
 
         String transitionName = getString(R.string.transition_product_img);

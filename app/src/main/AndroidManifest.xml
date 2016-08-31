@@ -23,7 +23,6 @@
         </activity>
         <activity android:name=".ProductEditActivity"
             android:parentActivityName=".MainActivity"
-            android:theme="@style/AppTheme.NoActionBar"
             android:windowSoftInputMode="stateHidden"/>
         <provider
             android:authorities="@string/product_provider_authority"

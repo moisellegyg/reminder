@@ -14,10 +14,15 @@ import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputEditText;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -40,6 +45,10 @@ import java.util.Date;
  */
 public class ProductEditFragment extends Fragment implements View.OnClickListener, View.OnTouchListener {
     private final static String TAG = ProductEditFragment.class.getSimpleName();
+
+    public static final String INTENT_EXTRA_DISABLE_DELETE_MENU_OPTION = "disableDeleteMenuOption";
+    private boolean mDisableDeleteMenuOption;
+
     private static final int REQUEST_IMAGE_CAPTURE = 1;
 
     public static final String PRODUCT_URI = "uri";
@@ -56,7 +65,6 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
     // Values
     private String mName;
     private String mRetrievedImgPath;
-
     private Uri mPreInsertUri;
     private Uri mLastUri;
 
@@ -120,6 +128,7 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
           https://developer.android.com/guide/topics/resources/runtime-changes.html#HandlingTheChange
 //        setRetainInstance(true);
          */
+        setHasOptionsMenu(true);
 
     }
 
@@ -129,6 +138,7 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
 
         View rootView = inflater.inflate(R.layout.fragment_product_edit, container, false);
         bindViews(rootView);
+        setupCustomActionBar();
         setOnClickListeners(mImageFrameLayout, mFromEditTxt, mToEditTxt, mCancelBtn, mSaveBtn);
         return rootView;
     }
@@ -163,8 +173,24 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
         mFromEditTxt.setInputType(InputType.TYPE_NULL);
         mToEditTxt = (DatePickEditText) rootView.findViewById(R.id.expired_time);
         mToEditTxt.setInputType(InputType.TYPE_NULL);
-        mCancelBtn = (LinearLayout) rootView.findViewById(R.id.btn_cancel);
-        mSaveBtn = (LinearLayout) rootView.findViewById(R.id.btn_save);
+    }
+
+    private void setupCustomActionBar() {
+        ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(false);
+            actionBar.setCustomView(R.layout.edit_product_custom_actionbar);
+            actionBar.setDisplayShowCustomEnabled(true);
+            actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM,
+                    ActionBar.DISPLAY_SHOW_CUSTOM | ActionBar.DISPLAY_SHOW_HOME |
+                            ActionBar.DISPLAY_SHOW_TITLE);
+
+            View customActionBarView = actionBar.getCustomView();
+            if (customActionBarView != null) {
+                mCancelBtn = (LinearLayout) customActionBarView.findViewById(R.id.cancel_menu_item);
+                mSaveBtn = (LinearLayout) customActionBarView.findViewById(R.id.save_menu_item);
+            }
+        }
     }
 
     private void bindDataToViews() {
@@ -428,6 +454,31 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
     public void onDestroy(){
         Log.d(TAG, "onDestroy");
         super.onDestroy();
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        Log.d(TAG, "onCreateOptionsMenu");
+
+        inflater.inflate(R.menu.menu_edit, menu);
+
+    }
+
+    @Override
+    public void onPrepareOptionsMenu(Menu menu) {
+        Log.d(TAG, "onPrepareOptionsMenu");
+        MenuItem deleteMenu = menu.findItem(R.id.action_delete);
+        mDisableDeleteMenuOption = getActivity().getIntent().getBooleanExtra(INTENT_EXTRA_DISABLE_DELETE_MENU_OPTION, false);
+        deleteMenu.setVisible(!mDisableDeleteMenuOption);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_delete:
+                return true;
+        }
+        return false;
     }
 
     @Override

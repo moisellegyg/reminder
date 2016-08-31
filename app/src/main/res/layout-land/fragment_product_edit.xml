@@ -11,45 +11,6 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:elevation="4dp">
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:orientation="horizontal">
-            <LinearLayout
-                android:id="@+id/btn_cancel"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:background="@color/colorPrimary"
-                android:foreground="@drawable/touch_ripple"
-                android:clickable="true">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Title"
-                    android:textColor="@color/btn_txt_color"
-                    android:text="Cancel"/>
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/btn_save"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:background="@color/colorPrimary"
-                android:foreground="@drawable/touch_ripple"
-                android:clickable="true">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Title"
-                    android:textColor="@color/btn_txt_color"
-                    android:text="Save" />
-            </LinearLayout>
-
-        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
