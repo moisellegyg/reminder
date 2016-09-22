@@ -9,6 +9,7 @@ public class Product {
     private String mDescription;
     private long mCreatedTime;
     private long mExpiredTime;
+    private boolean mDone;
 
     public Product(String Id, String name) {
         mId = Id;

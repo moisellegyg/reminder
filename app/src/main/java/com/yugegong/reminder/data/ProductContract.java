@@ -13,8 +13,6 @@ public final class ProductContract {
     public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + CONTENT_AUTHORITY);
     public static final String PATH_PRODUCT = "product";
 
-
-
     public ProductContract(){}
 
     public static abstract class ProductEntry implements BaseColumns {
@@ -36,11 +34,13 @@ public final class ProductContract {
         public static final String COLUMN_NAME_PRODUCT_IMG_PATH = "path";
         public static final String COLUMN_NAME_PRODUCT_CREATE_DATE = "create_date";
         public static final String COLUMN_NAME_PRODUCT_EXPIRE_DATE = "expire_date";
+        public static final String COLUMN_NAME_PRODUCT_IS_USED = "is_used";
 
         public static Uri buildProductUri(long _id) {
             return CONTENT_URI.buildUpon().appendPath(Long.toString(_id)).build();
         }
         public static long getIdFromUri(Uri uri) {
+            if (uri == null) return -1L;
             Log.d("ProductContract", uri.toString());
             return Long.parseLong(uri.getPathSegments().get(1));
         }
