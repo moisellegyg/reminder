@@ -10,13 +10,12 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class ProductDbHelper extends SQLiteOpenHelper {
 
     // If you change the database schema, you must increment the database version.
-    public static final int DATABASE_VERSION = 3;
+    public static final int DATABASE_VERSION = 2;
     public static final String DATABASE_NAME = "Product.db";
 
     private static final String TEXT_TYPE = " TEXT NOT NULL";
     private static final String NULLABLE_TEXT_TYPE = " TEXT";
     private static final String INTEGER_TYPE = " INTEGER NOT NULL";
-
     private static final String COMMA_SEP = ",";
 
     private static final String SQL_CREATE_PRODUCTS_TABLE =
@@ -26,7 +25,6 @@ public class ProductDbHelper extends SQLiteOpenHelper {
                     ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_NAME + TEXT_TYPE + COMMA_SEP +
                     ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_CREATE_DATE + INTEGER_TYPE + COMMA_SEP +
                     ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_EXPIRE_DATE + INTEGER_TYPE + COMMA_SEP +
-                    ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_IS_USED + INTEGER_TYPE + COMMA_SEP +
                     ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_IMG_PATH + NULLABLE_TEXT_TYPE + " )";
 
     private static final String SQL_DELETE_PRODUCTS_TABLE =

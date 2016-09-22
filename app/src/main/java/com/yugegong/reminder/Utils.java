@@ -90,11 +90,6 @@ public class Utils {
 
     }
 
-    /**
-     * Save the bitmap to the specified path
-     * @param path absolute path to save the bitmap
-     * @param bitmap bitmap to be saved
-     */
     public static void saveBitmapFile(String path, Bitmap bitmap) {
         deleteFile(path);
         try {

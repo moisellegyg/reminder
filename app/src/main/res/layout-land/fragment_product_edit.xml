@@ -1,86 +1,92 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/product_edit_root"
-    android:focusableInTouchMode="true"
-    android:orientation="horizontal"
-    android:layout_margin="32dp"
-    android:baselineAligned="false">
-    <FrameLayout
-        android:id="@+id/product_image_frame"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:clickable="true"
-        android:background="@color/colorBackground"
-        android:foreground="@drawable/touch_ripple">
-        <com.yugegong.reminder.ProductImageView
-            xmlns:custom="http://schemas.android.com/apk/res/com.yugegong.reminder"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/product_image"
-            android:scaleType="center"
-            android:layout_gravity="center"
-            android:src="@drawable/ic_add_a_photo_black_48dp"
-            android:transitionName="@string/transition_product_img"
-            custom:imgLoaded="false" />
-    </FrameLayout>
+    android:focusableInTouchMode="true">
 
     <LinearLayout
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:layout_marginStart="16dp"
         android:orientation="vertical"
-        android:gravity="center_vertical">
-        <android.support.design.widget.TextInputLayout
+        android:elevation="4dp">
+
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="@string/hint_product_name">
+            android:layout_height="match_parent"
+            android:layout_margin="32dp"
+            android:orientation="horizontal">
+            <FrameLayout
+                android:id="@+id/product_image_frame"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:clickable="true"
+                android:background="@color/colorBackground"
+                android:foreground="@drawable/touch_ripple">
+                <com.yugegong.reminder.ProductImageView
+                    xmlns:custom="http://schemas.android.com/apk/res/com.yugegong.reminder"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:id="@+id/product_image"
+                    android:scaleType="center"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_add_a_photo_black_48dp"
+                    android:transitionName="@string/transition_product_img"
+                    custom:imgLoaded="false" />
+            </FrameLayout>
 
-            <android.support.design.widget.TextInputEditText
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:fontFamily="sans-serif"
-                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                android:id="@+id/product_name"/>
-        </android.support.design.widget.TextInputLayout>
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:layout_marginLeft="16dp"
+                android:orientation="vertical">
+                <android.support.design.widget.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:hint="Product name">
 
-        <android.support.design.widget.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="@string/hint_created_date">
-            <view class="com.yugegong.reminder.ProductEditFragment$DatePickEditText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:fontFamily="sans-serif"
-                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                android:inputType="textNoSuggestions"
-                android:id="@+id/created_time"/>
-        </android.support.design.widget.TextInputLayout>
+                    <android.support.design.widget.TextInputEditText
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                        android:id="@+id/product_name"/>
+                </android.support.design.widget.TextInputLayout>
+
+                <android.support.design.widget.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:hint="Created Date">
+                    <view class="com.yugegong.reminder.ProductEditFragment$DatePickEditText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                        android:inputType="textNoSuggestions"
+                        android:id="@+id/created_time"/>
+                </android.support.design.widget.TextInputLayout>
 
 
-        <android.support.design.widget.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="@string/hint_expired_date">
-            <view class="com.yugegong.reminder.ProductEditFragment$DatePickEditText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:fontFamily="sans-serif"
-                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                android:inputType="textNoSuggestions"
-                android:id="@+id/expired_time"/>
-        </android.support.design.widget.TextInputLayout>
+                <android.support.design.widget.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:hint="Expired Date">
+                    <view class="com.yugegong.reminder.ProductEditFragment$DatePickEditText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                        android:inputType="textNoSuggestions"
+                        android:id="@+id/expired_time"/>
+                </android.support.design.widget.TextInputLayout>
 
-        <CheckBox
-            android:id="@+id/checkbox_is_used"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-            android:text="This product is used already"/>
+            </LinearLayout>
+        </LinearLayout>
     </LinearLayout>
-</LinearLayout>
+</FrameLayout>

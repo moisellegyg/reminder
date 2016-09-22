@@ -1,15 +1,14 @@
 <resources>
-    <!-- description: app name -->
     <string name="app_name">Reminder</string>
-
     <string name="action_settings">Settings</string>
     <string name="action_delete">Delete</string>
-    <!-- description: text on cancel button in product edit view -->
+
     <string name="menu_cancel">Cancel</string>
-    <!-- description: text on save button in product edit view -->
     <string name="menu_save">Save</string>
 
     <string name="img_loaded_flag" translatable="false">true</string>
+
+
     <string name="product_provider_authority" translatable="false">com.yugegong.reminder.productprovider</string>
     <string name="transition_product_img" translatable="false">transition_product_img</string>
     
@@ -18,19 +17,4 @@
         <item quantity="one">%1$d selected</item>
         <item quantity="other">%1$d selected</item>
     </plurals>
-
-    <string name="tab_fresh">Fresh</string>
-    <string name="tab_expired">Expired</string>
-    <string name="tab_used">Used</string>
-
-    <string name="notif_title">Action needed!</string>
-    <string name="notif_product_expiring_desc">%s will be expired today!</string>
-    <string name="action_used">Used</string>
-    <string name="action_dismiss">Remind later</string>
-    <string name="action_unknown">Unknown action</string>
-
-    <string name="hint_product_name">Product name</string>
-    <string name="hint_created_date">Created date</string>
-    <string name="hint_expired_date">Expired date</string>
-
 </resources>

@@ -22,23 +22,12 @@ import android.view.ViewGroup;
 
 import com.yugegong.reminder.data.ProductContract;
 
-import java.util.Calendar;
-
 /**
  * A placeholder fragment containing a simple view.
  */
 public class ProductListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     private final static String TAG = ProductListFragment.class.getSimpleName();
-
-    public enum DataLoadType {
-        DATA_LOAD_FRESH, DATA_LOAD_USED, DATA_LOAD_EXPIRED
-    }
-    public static final String KEY_DATA_LOAD_TYPE = "load_type";
-    private DataLoadType mDataLoadType;
-
     private final static int LOADER_ID = 0;
-    private final static String VALUE_IS_NOT_USED = "0";
-    private final static String VALUE_IS_USED = "1";
 
     private RecyclerView mRecyclerView;
     private int mPosition = mRecyclerView.NO_POSITION;
@@ -52,8 +41,7 @@ public class ProductListFragment extends Fragment implements LoaderManager.Loade
             ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_UPC,
             ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_IMG_PATH,
             ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_CREATE_DATE,
-            ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_EXPIRE_DATE,
-            ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_IS_USED
+            ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_EXPIRE_DATE
     };
 
     public static final int COL_PRODUCT_ID = 0;
@@ -62,7 +50,6 @@ public class ProductListFragment extends Fragment implements LoaderManager.Loade
     public static final int COL_PRODUCT_IMG_PATH = 3;
     public static final int COL_PRODUCT_CREATE_DATE = 4;
     public static final int COL_PRODUCT_EXPIRE_DATE = 5;
-    public static final int COL_PRODUCT_IS_USED = 6;
 
     public ProductListFragment() {
     }
@@ -81,7 +68,6 @@ public class ProductListFragment extends Fragment implements LoaderManager.Loade
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         Log.d(TAG, "onCreateView");
-
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.recyclerview_reminders);
         mRecyclerView.setHasFixedSize(true);
@@ -106,7 +92,7 @@ public class ProductListFragment extends Fragment implements LoaderManager.Loade
          * Initializes the CursorLoader. The LOADER_ID value is eventually passed
          * to onCreateLoader().
          */
-        getLoaderManager().initLoader(LOADER_ID, getArguments(), this);
+        getLoaderManager().initLoader(LOADER_ID, null, this);
         return rootView;
     }
 
@@ -148,56 +134,22 @@ public class ProductListFragment extends Fragment implements LoaderManager.Loade
 
     @Override
     public Loader onCreateLoader(int id, Bundle args) {
-        mDataLoadType = (DataLoadType) args.getSerializable(KEY_DATA_LOAD_TYPE);
-        Log.d(TAG, "onCreateLoader " + mDataLoadType.name());
-
-        Calendar c = Calendar.getInstance();
-        int date = c.get(Calendar.DATE) + 1;
-        c.set(Calendar.DATE, date);
-        c.set(Calendar.HOUR_OF_DAY, 0);
-        c.set(Calendar.MINUTE, 0);
-        c.set(Calendar.SECOND, 0);
-        c.set(Calendar.MILLISECOND, 0);
-        long timestamp = c.getTimeInMillis();
-        Log.d(TAG, c.getTime().toString());
-
-        if (id == LOADER_ID) {
-            String selection = null;
-            String[] selectionArgs = null;
-            switch (mDataLoadType) {
-                case DATA_LOAD_FRESH: {
-                    selection = ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_EXPIRE_DATE + " >= ? AND "
-                            + ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_IS_USED + " = ?";
-                    selectionArgs = new String[]{Long.toString(timestamp), VALUE_IS_NOT_USED};
-                    break;
-                }
-                case DATA_LOAD_USED: {
-                    selection = ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_IS_USED + " = ?";
-                    selectionArgs = new String[]{VALUE_IS_USED};
-                    break;
-                }
-                case DATA_LOAD_EXPIRED: {
-                    selection = ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_EXPIRE_DATE + " < ? AND "
-                            + ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_IS_USED + " = ?";
-                    selectionArgs = new String[]{Long.toString(timestamp), VALUE_IS_NOT_USED};
-                    break;
-                }
-                default:
-                    break;
-            }
-
-            Uri productUri = ProductContract.ProductEntry.CONTENT_URI;
-            String sort_by = ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_EXPIRE_DATE + " ASC";
-            return new CursorLoader(
-                    getContext(),       // Parent activity context
-                    productUri,         // Table to query
-                    PRODUCT_COLUMNS,    // Projection to return
-                    selection,               // No selection clause
-                    selectionArgs,               // No selection arguments
-                    sort_by             // sort by product expired date
-            );
+        Log.d(TAG, "onCreateLoader");
+        switch (id) {
+            case LOADER_ID:
+                Uri productUri = ProductContract.ProductEntry.CONTENT_URI;
+                String sort_by = ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_EXPIRE_DATE + " ASC";
+                return new CursorLoader(
+                        getContext(),       // Parent activity context
+                        productUri,         // Table to query
+                        PRODUCT_COLUMNS,    // Projection to return
+                        null,               // No selection clause
+                        null,               // No selection arguments
+                        sort_by             // sort by product expired date
+                );
+            default:
+                return null;
         }
-        return null;
     }
 
     @Override
