@@ -27,25 +27,27 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.CheckBox;
 import android.widget.DatePicker;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.yugegong.reminder.data.ProductContract;
+import com.yugegong.reminder.notification.AlarmService;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by ygong on 8/4/16.
  */
 public class ProductEditFragment extends Fragment implements View.OnClickListener, View.OnTouchListener {
     private final static String TAG = ProductEditFragment.class.getSimpleName();
-
     public static final String INTENT_EXTRA_DISABLE_DELETE_MENU_OPTION = "disableDeleteMenuOption";
     private boolean mDisableDeleteMenuOption;
 
@@ -61,14 +63,16 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
     private static final String KEY_RETRIEVED_IMG_PATH = "saved_path";
     private static final String KEY_LAST_IMG_URI = "last_uri";
     private static final String KEY_PREINSERT_URI = "preinsert_uri";
+    private static final String KEY_IS_USED = "is_used";
 
     // Values
     private String mName;
     private String mRetrievedImgPath;
     private Uri mPreInsertUri;
     private Uri mLastUri;
+    private boolean mIsUsed;
 
-    private FrameLayout mEditLayout;
+    private LinearLayout mEditLayout;
     private FrameLayout mImageFrameLayout;
     private ProductImageView mImageView;
     private TextInputEditText mNameEditTxt;
@@ -76,6 +80,7 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
     private DatePickEditText mToEditTxt;
     private LinearLayout mCancelBtn;
     private LinearLayout mSaveBtn;
+    private CheckBox mUsedCheckBox;
 
     private static final String[] PRODUCT_COLUMNS = {
             ProductContract.ProductEntry._ID,
@@ -83,7 +88,8 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
             ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_UPC,
             ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_IMG_PATH,
             ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_CREATE_DATE,
-            ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_EXPIRE_DATE
+            ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_EXPIRE_DATE,
+            ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_IS_USED
     };
 
     public static final int COL_PRODUCT_ID = 0;
@@ -92,6 +98,7 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
     public static final int COL_PRODUCT_IMG_PATH = 3;
     public static final int COL_PRODUCT_CREATE_DATE = 4;
     public static final int COL_PRODUCT_EXPIRE_DATE = 5;
+    public static final int COL_PRODUCT_IS_USED = 6;
 
 
     public static class DatePickEditText extends TextInputEditText implements DatePickerDialog.OnDateSetListener {
@@ -112,6 +119,12 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
         public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
             Calendar rightNow = Calendar.getInstance();
             rightNow.set(year, monthOfYear, dayOfMonth);
+            rightNow.set(Calendar.HOUR_OF_DAY, 0);
+            rightNow.set(Calendar.MINUTE, 0);
+            rightNow.set(Calendar.SECOND, 0);
+            rightNow.set(Calendar.MILLISECOND, 0);
+            Log.d(TAG, rightNow.getTime().toString());
+
             timestamp = rightNow.getTimeInMillis();
             this.setText(Utils.getDateTimeString(timestamp));
         }
@@ -126,10 +139,9 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
           leak if you don't set all the views' references to null when the Fragment calls onDestroyView.
           Better to call setRetainInstance(true) when it's a fragment without UI.
           https://developer.android.com/guide/topics/resources/runtime-changes.html#HandlingTheChange
-//        setRetainInstance(true);
+          setRetainInstance(true);
          */
         setHasOptionsMenu(true);
-
     }
 
     @Override
@@ -164,11 +176,12 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
     }
 
     private void bindViews(View rootView) {
-        mEditLayout = (FrameLayout) rootView.findViewById(R.id.product_edit_root);
+        mEditLayout = (LinearLayout) rootView.findViewById(R.id.product_edit_root);
         mEditLayout.setOnTouchListener(this);
         mImageFrameLayout = (FrameLayout) rootView.findViewById(R.id.product_image_frame);
         mImageView = (ProductImageView) rootView.findViewById(R.id.product_image);
         mNameEditTxt = (TextInputEditText) rootView.findViewById(R.id.product_name);
+        mUsedCheckBox = (CheckBox) rootView.findViewById(R.id.checkbox_is_used);
         mFromEditTxt = (DatePickEditText) rootView.findViewById(R.id.created_time);
         mFromEditTxt.setInputType(InputType.TYPE_NULL);
         mToEditTxt = (DatePickEditText) rootView.findViewById(R.id.expired_time);
@@ -202,6 +215,7 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
         } else if (mLastUri != null) {
             mImageView.loadImageFromFile(mLastUri.getPath());
         }
+        mUsedCheckBox.setChecked(mIsUsed);
     }
 
     private void restoreInstanceState(Bundle savedInstanceState) {
@@ -209,6 +223,7 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
         mName = savedInstanceState.getString(KEY_NAME);
         mFromEditTxt.timestamp = savedInstanceState.getLong(KEY_CREATE_TIME, -1);
         mToEditTxt.timestamp = savedInstanceState.getLong(KEY_EXPIRE_TIME, -1);
+        mIsUsed = savedInstanceState.getBoolean(KEY_IS_USED, false);
         mRetrievedImgPath = savedInstanceState.getString(KEY_RETRIEVED_IMG_PATH);
         mLastUri = savedInstanceState.getParcelable(KEY_LAST_IMG_URI);
         mPreInsertUri = savedInstanceState.getParcelable(KEY_PREINSERT_URI);
@@ -223,10 +238,11 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
             mName = cursor.getString(COL_PRODUCT_NAME);
             mFromEditTxt.timestamp = cursor.getLong(COL_PRODUCT_CREATE_DATE);
             mToEditTxt.timestamp = cursor.getLong(COL_PRODUCT_EXPIRE_DATE);
+            mIsUsed = cursor.getInt(COL_PRODUCT_IS_USED) == 1;
             mRetrievedImgPath = cursor.getString(COL_PRODUCT_IMG_PATH);
             mPreInsertUri = null;
             mLastUri = null;
-            Log.d(TAG, mName + " retrieved.");
+            Log.d(TAG, mName + " retrieved. " + cursor.getInt(COL_PRODUCT_IS_USED));
             cursor.close();
         }
     }
@@ -245,6 +261,7 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
         if (mToEditTxt.timestamp != -1) {
             outState.putLong(KEY_EXPIRE_TIME, mToEditTxt.timestamp);
         }
+        outState.putBoolean(KEY_IS_USED, mUsedCheckBox.isChecked());
 
         if (mRetrievedImgPath != null && mRetrievedImgPath.length() > 0) {
             outState.putString(KEY_RETRIEVED_IMG_PATH, mRetrievedImgPath);
@@ -385,13 +402,16 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
             Log.d(TAG, "delete " + mRetrievedImgPath);
             Utils.deleteFile(mRetrievedImgPath);
         }
-        saveProduct(mProductUri, mName, mFromEditTxt.timestamp, mToEditTxt.timestamp, currentImgPath);
+
+        int isUsed = mUsedCheckBox.isChecked() ? 1 : 0;
+        saveProduct(mProductUri, mName, mFromEditTxt.timestamp, mToEditTxt.timestamp, currentImgPath, isUsed);
+//        scheduleNotification(mProductUri, mName, mToEditTxt.timestamp);
         startMainActivity();
     }
 
-    private void saveProduct(Uri productUri, String productName, long createTimestamp, long expireTimestamp, String imgPath) {
+    private void saveProduct(Uri productUri, String productName, long createTimestamp, long expireTimestamp, String imgPath, int isUsed) {
         EditProductTask task = new EditProductTask(productUri);
-        task.execute(productName, Long.toString(createTimestamp), Long.toString(expireTimestamp), imgPath);
+        task.execute(productName, Long.toString(createTimestamp), Long.toString(expireTimestamp), imgPath, Integer.toString(isUsed));
     }
 
     private void setOnClickListeners(View... views) {
@@ -409,27 +429,30 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
         Intent intent = new Intent(getContext(), MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
-
     }
 
-    private class EditProductTask extends AsyncTask<String, Void, Void> {
+    private class EditProductTask extends AsyncTask<String, Void, Uri> {
         private Uri mUpdateUri;
+        private String mProductName;
+        String mExpireTimestamp;
         EditProductTask(Uri productUri) {
             mUpdateUri = productUri;
         }
 
         @Override
-        protected Void doInBackground(String... params) {
+        protected Uri doInBackground(String... params) {
             Log.d("EditProductTask", "doInBackground");
-            String productName = params[0];
+            mProductName = params[0];
             String createTimestamp = params[1];
-            String expireTimestamp = params[2];
+            mExpireTimestamp = params[2];
             String imgPath = params[3];
+            String isUsed = params[4];
 
             ContentValues contentValues = new ContentValues();
-            contentValues.put(ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_NAME, productName);
+            contentValues.put(ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_NAME, mProductName);
             contentValues.put(ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_CREATE_DATE, createTimestamp);
-            contentValues.put(ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_EXPIRE_DATE, expireTimestamp);
+            contentValues.put(ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_EXPIRE_DATE, mExpireTimestamp);
+            contentValues.put(ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_IS_USED, isUsed);
 
             if (imgPath != null && imgPath.length() != 0) {
                 contentValues.put(ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_IMG_PATH, imgPath);
@@ -441,11 +464,25 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
             } else {
                 Log.d("EditProductTask", "insert");
                 Uri contentUri = ProductContract.ProductEntry.CONTENT_URI;
-                Uri newUri = getContext().getContentResolver().insert(contentUri, contentValues);
-                Log.d("EditProductTask", newUri.toString());
+                mUpdateUri = getContext().getContentResolver().insert(contentUri, contentValues);
+                Log.d("EditProductTask", mUpdateUri.toString());
             }
 
-            return null;
+            return mUpdateUri;
+        }
+
+        @Override
+        protected void onPostExecute(Uri productUri) {
+            long triggerAtMillis = Long.parseLong(mExpireTimestamp) + TimeUnit.MILLISECONDS.convert(24L, TimeUnit.HOURS);
+            scheduleNotification(productUri, mProductName, triggerAtMillis);
+        }
+
+        private void scheduleNotification(Uri productUri, String productName, long timestamp) {
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTimeInMillis(timestamp);
+            Log.d("EditProductTask", "scheduleNotification at: " + calendar.getTime().toString());
+            AlarmService alarmService = new AlarmService(getContext(), productUri, productName);
+            alarmService.setAlarm(Calendar.getInstance().getTimeInMillis());
         }
 
     }

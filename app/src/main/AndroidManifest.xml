@@ -30,6 +30,9 @@
             android:exported="false"
             android:syncable="true" />
 
+        <receiver android:name=".notification.AlarmBroadcastReceiver"/>
+        <receiver android:name=".notification.NotificationBroadcastReceiver"/>
+
     </application>
 
 </manifest>
