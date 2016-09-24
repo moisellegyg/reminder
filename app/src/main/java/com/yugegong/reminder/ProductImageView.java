@@ -14,7 +14,7 @@ import android.widget.ImageView;
  * Created by ygong on 8/11/16.
  */
 public class ProductImageView extends ImageView{
-    public static final double HEIGHT_WIDTH_RATIO = 9/16;
+    public static final double HEIGHT_WIDTH_RATIO = 3/4;
 
     private final static String TAG = ProductImageView.class.getSimpleName();
     private int mTargetW, mTargetH;
@@ -85,12 +85,12 @@ public class ProductImageView extends ImageView{
 
         @Override
         protected void onPostExecute(Bitmap bitmap) {
-            Log.d("SaveImageTask", "onPostExecute " + bitmap.getWidth() + " " + bitmap.getHeight());
             if (bitmap == null) {
-                Log.d(TAG, "bitmap is null, no image will be loaded");
+                Log.i(TAG, "bitmap is null, no image will be loaded");
                 return;
             }
-            Log.d("SaveImageTask", "imageView " + imageView.getWidth() + " " + imageView.getHeight());
+            Log.d("SaveImageTask", "imageView " + imageView.getWidth() + " " + imageView.getHeight()
+                    + " " + bitmap.getWidth() + " " + bitmap.getHeight());
             imageView.setImageBitmap(bitmap);
             imageView.setScaleType(ScaleType.CENTER_CROP);
         }

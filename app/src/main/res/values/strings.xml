@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <!-- description: app name -->
     <string name="app_name">Reminder</string>
 
@@ -24,7 +24,8 @@
     <string name="tab_used">Used</string>
 
     <string name="notif_title">Action needed!</string>
-    <string name="notif_product_expiring_desc">%s will be expired today!</string>
+    <string name="notif_product_expiring_desc"><xliff:g id="product_name" example="Milk">%s</xliff:g> will be expired in <xliff:g id="day_count" example="3">%d days!</xliff:g></string>
+    <string name="notif_product_expiring_today_desc"><xliff:g id="product_name" example="Milk">%s</xliff:g> will be expired today!</string>
     <string name="action_used">Used</string>
     <string name="action_dismiss">Remind later</string>
     <string name="action_unknown">Unknown action</string>

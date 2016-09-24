@@ -22,14 +22,18 @@ import android.view.ViewGroup;
 
 import com.yugegong.reminder.data.ProductContract;
 
-import java.util.Calendar;
-
 /**
  * A placeholder fragment containing a simple view.
  */
 public class ProductListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     private final static String TAG = ProductListFragment.class.getSimpleName();
 
+    /**
+     * Type of product the adapter will load. There are three types of product in total:<br>
+     * {@link DataLoadType#DATA_LOAD_FRESH} - Products haven't been used and aren't expired yet.<br>
+     * {@link DataLoadType#DATA_LOAD_USED} - <br>
+     * {@link DataLoadType#DATA_LOAD_EXPIRED}.
+     */
     public enum DataLoadType {
         DATA_LOAD_FRESH, DATA_LOAD_USED, DATA_LOAD_EXPIRED
     }
@@ -63,6 +67,18 @@ public class ProductListFragment extends Fragment implements LoaderManager.Loade
     public static final int COL_PRODUCT_CREATE_DATE = 4;
     public static final int COL_PRODUCT_EXPIRE_DATE = 5;
     public static final int COL_PRODUCT_IS_USED = 6;
+
+    private static final String SELECTION_IF_USED =
+            ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_IS_USED + " = ?";
+    private static final String SELECTION_FRESH_IF_USED =
+            ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_EXPIRE_DATE + " >= ? AND "
+                    + SELECTION_IF_USED;
+    private static final String SELECTION_EXPIRED_IF_USED =
+            ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_EXPIRE_DATE + " < ? AND "
+                    + SELECTION_IF_USED;
+    private static final String SORT_BY_EXPIRED_DATE_ASC =
+            ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_EXPIRE_DATE + " ASC";
+
 
     public ProductListFragment() {
     }
@@ -151,34 +167,25 @@ public class ProductListFragment extends Fragment implements LoaderManager.Loade
         mDataLoadType = (DataLoadType) args.getSerializable(KEY_DATA_LOAD_TYPE);
         Log.d(TAG, "onCreateLoader " + mDataLoadType.name());
 
-        Calendar c = Calendar.getInstance();
-        int date = c.get(Calendar.DATE) + 1;
-        c.set(Calendar.DATE, date);
-        c.set(Calendar.HOUR_OF_DAY, 0);
-        c.set(Calendar.MINUTE, 0);
-        c.set(Calendar.SECOND, 0);
-        c.set(Calendar.MILLISECOND, 0);
-        long timestamp = c.getTimeInMillis();
-        Log.d(TAG, c.getTime().toString());
+        // get today's time in milliseconds
+        long timestamp = Utils.getTodayTimeInMillis();
 
         if (id == LOADER_ID) {
             String selection = null;
             String[] selectionArgs = null;
             switch (mDataLoadType) {
                 case DATA_LOAD_FRESH: {
-                    selection = ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_EXPIRE_DATE + " >= ? AND "
-                            + ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_IS_USED + " = ?";
+                    selection = SELECTION_FRESH_IF_USED;
                     selectionArgs = new String[]{Long.toString(timestamp), VALUE_IS_NOT_USED};
                     break;
                 }
                 case DATA_LOAD_USED: {
-                    selection = ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_IS_USED + " = ?";
+                    selection = SELECTION_IF_USED;
                     selectionArgs = new String[]{VALUE_IS_USED};
                     break;
                 }
                 case DATA_LOAD_EXPIRED: {
-                    selection = ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_EXPIRE_DATE + " < ? AND "
-                            + ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_IS_USED + " = ?";
+                    selection = SELECTION_EXPIRED_IF_USED;
                     selectionArgs = new String[]{Long.toString(timestamp), VALUE_IS_NOT_USED};
                     break;
                 }
@@ -187,7 +194,7 @@ public class ProductListFragment extends Fragment implements LoaderManager.Loade
             }
 
             Uri productUri = ProductContract.ProductEntry.CONTENT_URI;
-            String sort_by = ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_EXPIRE_DATE + " ASC";
+            String sort_by = SORT_BY_EXPIRED_DATE_ASC;
             return new CursorLoader(
                     getContext(),       // Parent activity context
                     productUri,         // Table to query
@@ -211,6 +218,5 @@ public class ProductListFragment extends Fragment implements LoaderManager.Loade
         Log.d(TAG, "onLoaderReset");
         mReminderAdapter.swapCursor(null);
     }
-
 
 }

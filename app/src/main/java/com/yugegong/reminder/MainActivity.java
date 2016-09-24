@@ -110,7 +110,7 @@ public class MainActivity extends AppCompatActivity implements ProductListFragme
         ActivityOptionsCompat options =
                 ActivityOptionsCompat.makeSceneTransitionAnimation(this,
                         vh.mImageView,   // The view which starts the transition
-                        transitionName    // The transitionName of the view we’re transitioning to
+                        transitionName    // The transitionName of the view we are transitioning to
                 );
         ActivityCompat.startActivity(this, editIntent, options.toBundle());
     }

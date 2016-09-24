@@ -41,7 +41,6 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by ygong on 8/4/16.
@@ -49,10 +48,9 @@ import java.util.concurrent.TimeUnit;
 public class ProductEditFragment extends Fragment implements View.OnClickListener, View.OnTouchListener {
     private final static String TAG = ProductEditFragment.class.getSimpleName();
     public static final String INTENT_EXTRA_DISABLE_DELETE_MENU_OPTION = "disableDeleteMenuOption";
-    private boolean mDisableDeleteMenuOption;
+//    private boolean mDisableDeleteMenuOption;
 
     private static final int REQUEST_IMAGE_CAPTURE = 1;
-
     public static final String PRODUCT_URI = "uri";
     private Uri mProductUri;
 
@@ -72,7 +70,7 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
     private Uri mLastUri;
     private boolean mIsUsed;
 
-    private LinearLayout mEditLayout;
+//    private LinearLayout mEditLayout;
     private FrameLayout mImageFrameLayout;
     private ProductImageView mImageView;
     private TextInputEditText mNameEditTxt;
@@ -92,9 +90,9 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
             ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_IS_USED
     };
 
-    public static final int COL_PRODUCT_ID = 0;
+//    public static final int COL_PRODUCT_ID = 0;
     public static final int COL_PRODUCT_NAME = 1;
-    public static final int COL_PRODUCT_UPC = 2;
+//    public static final int COL_PRODUCT_UPC = 2;
     public static final int COL_PRODUCT_IMG_PATH = 3;
     public static final int COL_PRODUCT_CREATE_DATE = 4;
     public static final int COL_PRODUCT_EXPIRE_DATE = 5;
@@ -124,7 +122,6 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
             rightNow.set(Calendar.SECOND, 0);
             rightNow.set(Calendar.MILLISECOND, 0);
             Log.d(TAG, rightNow.getTime().toString());
-
             timestamp = rightNow.getTimeInMillis();
             this.setText(Utils.getDateTimeString(timestamp));
         }
@@ -147,7 +144,6 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         Log.d(TAG, "onCreateView");
-
         View rootView = inflater.inflate(R.layout.fragment_product_edit, container, false);
         bindViews(rootView);
         setupCustomActionBar();
@@ -176,8 +172,8 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
     }
 
     private void bindViews(View rootView) {
-        mEditLayout = (LinearLayout) rootView.findViewById(R.id.product_edit_root);
-        mEditLayout.setOnTouchListener(this);
+        LinearLayout editLayout = (LinearLayout) rootView.findViewById(R.id.product_edit_root);
+        editLayout.setOnTouchListener(this);
         mImageFrameLayout = (FrameLayout) rootView.findViewById(R.id.product_image_frame);
         mImageView = (ProductImageView) rootView.findViewById(R.id.product_image);
         mNameEditTxt = (TextInputEditText) rootView.findViewById(R.id.product_name);
@@ -422,7 +418,10 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
 
     private void hideSoftInput() {
         InputMethodManager imm = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(getActivity().getCurrentFocus().getApplicationWindowToken(), 0);
+        View view = getActivity().getCurrentFocus();
+        if (view != null) {
+            imm.hideSoftInputFromWindow(view.getApplicationWindowToken(), 0);
+        }
     }
 
     private void startMainActivity() {
@@ -434,7 +433,7 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
     private class EditProductTask extends AsyncTask<String, Void, Uri> {
         private Uri mUpdateUri;
         private String mProductName;
-        String mExpireTimestamp;
+        private Long mExpireTimestamp;
         EditProductTask(Uri productUri) {
             mUpdateUri = productUri;
         }
@@ -443,10 +442,14 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
         protected Uri doInBackground(String... params) {
             Log.d("EditProductTask", "doInBackground");
             mProductName = params[0];
-            String createTimestamp = params[1];
-            mExpireTimestamp = params[2];
+            Long createTimestamp = Long.parseLong(params[1]);
+            mExpireTimestamp = Long.parseLong(params[2]) + Utils.ONE_DAYS_IN_MILLIS - 1000L;
             String imgPath = params[3];
             String isUsed = params[4];
+
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTimeInMillis(mExpireTimestamp);
+            Log.d("EditProductTask", "expiredTime = " + calendar.getTime().toString());
 
             ContentValues contentValues = new ContentValues();
             contentValues.put(ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_NAME, mProductName);
@@ -462,10 +465,9 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
                 Log.d("EditProductTask", "update");
                 getContext().getContentResolver().update(mUpdateUri, contentValues, null, null);
             } else {
-                Log.d("EditProductTask", "insert");
                 Uri contentUri = ProductContract.ProductEntry.CONTENT_URI;
                 mUpdateUri = getContext().getContentResolver().insert(contentUri, contentValues);
-                Log.d("EditProductTask", mUpdateUri.toString());
+                Log.d("EditProductTask", "insert to " + mUpdateUri.toString());
             }
 
             return mUpdateUri;
@@ -473,16 +475,18 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
 
         @Override
         protected void onPostExecute(Uri productUri) {
-            long triggerAtMillis = Long.parseLong(mExpireTimestamp) + TimeUnit.MILLISECONDS.convert(24L, TimeUnit.HOURS);
-            scheduleNotification(productUri, mProductName, triggerAtMillis);
+            long currentTimeInMillis = Utils.getCurrentTimeInMillis();
+            long notifyAtMillis = mExpireTimestamp - Utils.THREE_DAYS_IN_MILLIS;
+            long triggerAtMillis = notifyAtMillis < currentTimeInMillis ? currentTimeInMillis : notifyAtMillis;
+            scheduleNotification(productUri, mProductName, triggerAtMillis, mExpireTimestamp);
         }
 
-        private void scheduleNotification(Uri productUri, String productName, long timestamp) {
+        private void scheduleNotification(Uri productUri, String productName, long triggerAtMillis, long expireTime) {
             Calendar calendar = Calendar.getInstance();
-            calendar.setTimeInMillis(timestamp);
+            calendar.setTimeInMillis(triggerAtMillis);
             Log.d("EditProductTask", "scheduleNotification at: " + calendar.getTime().toString());
-            AlarmService alarmService = new AlarmService(getContext(), productUri, productName);
-            alarmService.setAlarm(Calendar.getInstance().getTimeInMillis());
+            AlarmService alarmService = new AlarmService(getContext(), productUri, productName, expireTime);
+            alarmService.setAlarm(triggerAtMillis);
         }
 
     }
@@ -505,8 +509,8 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
     public void onPrepareOptionsMenu(Menu menu) {
         Log.d(TAG, "onPrepareOptionsMenu");
         MenuItem deleteMenu = menu.findItem(R.id.action_delete);
-        mDisableDeleteMenuOption = getActivity().getIntent().getBooleanExtra(INTENT_EXTRA_DISABLE_DELETE_MENU_OPTION, false);
-        deleteMenu.setVisible(!mDisableDeleteMenuOption);
+        boolean disableDeleteMenuOption = getActivity().getIntent().getBooleanExtra(INTENT_EXTRA_DISABLE_DELETE_MENU_OPTION, false);
+        deleteMenu.setVisible(!disableDeleteMenuOption);
     }
 
     @Override

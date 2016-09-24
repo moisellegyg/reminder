@@ -9,10 +9,9 @@ import android.net.Uri;
 import android.util.Log;
 
 import com.yugegong.reminder.ProductEditFragment;
+import com.yugegong.reminder.Utils;
 import com.yugegong.reminder.data.ProductContract;
 import com.yugegong.reminder.data.ProductQueryHandler;
-
-import java.util.Calendar;
 
 /**
  * Created by ygong on 9/15/16.
@@ -20,21 +19,15 @@ import java.util.Calendar;
 public class NotificationBroadcastReceiver extends BroadcastReceiver {
     private static final String LOG_TAG = NotificationBroadcastReceiver.class.getSimpleName();
 
+    // Dismiss action to take in the notification card
     public static final String ACTION_PRODUCT_DISMISS =
             "com.yugegong.reminder.ACTION_PRODUCT_DISMISS";
+    // Set product used action to take in the notification card
     public static final String ACTION_PRODUCT_SET_USED =
             "com.yugegong.reminder.ACTION_PRODUCT_SET_USED";
 
-    public static final String ACTION_TYPE = "action_type";
     public static final int TIME_INTERVAL_IN_MILLIS = 21600000; // 6hrs
     public static ProductQueryHandler handler;
-    /**
-     * Actions can be taken when user interact with notification
-     * ACTION_DONE, ACTION_DISMISS
-     */
-//    public enum ActionType {
-//        ACTION_DONE, ACTION_DISMISS
-//    }
 
     private Context mContext;
 
@@ -45,9 +38,9 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
 
         mContext = context;
         if (handler != null) handler = new ProductQueryHandler(context.getContentResolver());
-//        ActionType type = (ActionType) intent.getSerializableExtra(ACTION_TYPE);
         int notificationId = intent.getIntExtra(AlarmBroadcastReceiver.KEY_NOTIFICATION_ID, -1);
         String productName = intent.getStringExtra(AlarmBroadcastReceiver.KEY_PRODUCT_NAME);
+        long expiredTime = intent.getLongExtra(AlarmBroadcastReceiver.KEY_EXPIRED_TIME, -1L);
         Uri productUri = intent.getParcelableExtra(ProductEditFragment.PRODUCT_URI);
         Log.d(LOG_TAG, notificationId + " " + productName);
 
@@ -57,7 +50,7 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
                 cancelNotification(notificationId);
                 break;
             case ACTION_PRODUCT_DISMISS: {
-                setAlarm(context, productUri, productName);
+                setNextAlarm(context, productUri, productName, expiredTime);
                 cancelNotification(notificationId);
                 break;
             }
@@ -72,11 +65,13 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
      * @param productUri URI for the product
      * @param productName Name for the product
      */
-    private void setAlarm(Context context, Uri productUri, String productName) {
-
-        AlarmService service = new AlarmService(context, productUri, productName);
-        Calendar c = Calendar.getInstance();
-        long triggerAtMillis = c.getTimeInMillis() + 10000; //3600000; // remind after 1 hour
+    private void setNextAlarm(Context context, Uri productUri, String productName, long expiredTime) {
+        AlarmService service = new AlarmService(context, productUri, productName, expiredTime);
+        //Midnight tomorrow time in millisecond
+        long tomorrowTime = Utils.getTodayTimeInMillis() + Utils.ONE_DAYS_IN_MILLIS;
+        //Three hours later from now on in millisecond
+        long threeHrsLater = Utils.getCurrentTimeInMillis() + Utils.THREE_HOURS_IN_MILLIS;
+        long triggerAtMillis = expiredTime > tomorrowTime ? tomorrowTime : threeHrsLater;
         service.setAlarm(triggerAtMillis);
     }
 

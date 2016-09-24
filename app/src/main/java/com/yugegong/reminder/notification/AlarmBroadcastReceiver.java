@@ -13,6 +13,7 @@ import android.util.Log;
 import com.yugegong.reminder.ProductEditActivity;
 import com.yugegong.reminder.ProductEditFragment;
 import com.yugegong.reminder.R;
+import com.yugegong.reminder.Utils;
 import com.yugegong.reminder.data.ProductContract;
 import static com.yugegong.reminder.notification.NotificationBroadcastReceiver.*;
 
@@ -22,8 +23,10 @@ import static com.yugegong.reminder.notification.NotificationBroadcastReceiver.*
 public class AlarmBroadcastReceiver extends BroadcastReceiver {
     private static final String LOG_TAG = AlarmBroadcastReceiver.class.getSimpleName();
 
+    // keys of extras pass to intent.
     public static final String KEY_PRODUCT_NAME = "product_name";
     public static final String KEY_NOTIFICATION_ID = "notification_id";
+    public static final String KEY_EXPIRED_TIME = "expired_time";
 
     // Group Key to group notification
     private final static String GROUP_KEY_PRODUCTS = "group_key_products";
@@ -32,6 +35,7 @@ public class AlarmBroadcastReceiver extends BroadcastReceiver {
 
     private String mProductName;
     private Uri mProductUri;
+    private long mExpiredTimestamp;
     private int mNotificationId;
     private Context mContext;
 
@@ -45,7 +49,8 @@ public class AlarmBroadcastReceiver extends BroadcastReceiver {
         mContext = context;
         if (intent == null) return;
         mProductName = intent.getStringExtra(KEY_PRODUCT_NAME);
-        Log.d(LOG_TAG, mProductName);
+        mExpiredTimestamp = intent.getLongExtra(KEY_EXPIRED_TIME, -1L);
+        Log.d(LOG_TAG, mProductName + " expires at: " + mExpiredTimestamp);
 
         mProductUri = intent.getParcelableExtra(ProductEditFragment.PRODUCT_URI);
         if (mProductUri == null) return;
@@ -64,11 +69,17 @@ public class AlarmBroadcastReceiver extends BroadcastReceiver {
     }
 
     private NotificationCompat.Builder getNotificationBuilder() {
+        long todayTime = Utils.getTodayTimeInMillis();
+        int days = (int)((mExpiredTimestamp - todayTime) / Utils.ONE_DAYS_IN_MILLIS) + 1;
+        String contentText = days == 1 ?
+                mContext.getString(R.string.notif_product_expiring_today_desc, mProductName) :
+                mContext.getString(R.string.notif_product_expiring_desc, mProductName, days);
+        Log.d(LOG_TAG, contentText);
         final NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext);
         builder.setPriority(Notification.PRIORITY_HIGH)
                 .setSmallIcon(R.drawable.ic_restaurant_black_48dp)
                 .setContentTitle(mContext.getString(R.string.notif_title))
-                .setContentText(mContext.getString(R.string.notif_product_expiring_desc, mProductName))
+                .setContentText(contentText)
                 .setContentIntent(createEditPendingIntent(mContext, mProductUri))
                 .setGroup(GROUP_KEY_PRODUCTS);  // Android N and above
         return builder;
@@ -85,7 +96,8 @@ public class AlarmBroadcastReceiver extends BroadcastReceiver {
                 ACTION_PRODUCT_DISMISS,
                 mNotificationId,
                 mProductName,
-                mProductUri);
+                mProductUri,
+                mExpiredTimestamp);
         NotificationCompat.Action action = new NotificationCompat.Action.Builder(
                 R.drawable.ic_alarm_black_24dp,
                 mContext.getString(R.string.action_dismiss),
@@ -102,7 +114,8 @@ public class AlarmBroadcastReceiver extends BroadcastReceiver {
                 ACTION_PRODUCT_SET_USED,
                 mNotificationId,
                 mProductName,
-                mProductUri);
+                mProductUri,
+                mExpiredTimestamp);
         NotificationCompat.Action action = new NotificationCompat.Action.Builder(
                 R.drawable.ic_done_black_24dp,
                 mContext.getString(R.string.action_used),
@@ -119,12 +132,13 @@ public class AlarmBroadcastReceiver extends BroadcastReceiver {
         return PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
-    private static PendingIntent createNotificationPendingIntent(Context context, String action, int notificationId, String productName, Uri productUri) {
+    private static PendingIntent createNotificationPendingIntent(Context context, String action, int notificationId, String productName, Uri productUri, long expiredTimestamp) {
         final Intent intent = new Intent(action, null,
                 context, NotificationBroadcastReceiver.class);
         Log.d("createNotification", "notificationId = " + notificationId);
         intent.putExtra(KEY_NOTIFICATION_ID, notificationId);
         intent.putExtra(KEY_PRODUCT_NAME, productName);
+        intent.putExtra(KEY_EXPIRED_TIME, expiredTimestamp);
         intent.putExtra(ProductEditFragment.PRODUCT_URI, productUri);
         return PendingIntent.getBroadcast(context, 0, intent, 0);
     }

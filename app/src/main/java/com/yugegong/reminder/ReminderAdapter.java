@@ -93,10 +93,10 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
     public class ViewHolder extends MultiSelectableHolder
             implements View.OnClickListener, View.OnLongClickListener {
 
-        public final ProductImageView mImageView;
-        public final TextView mNameTextView;
-        public final TextView mCreateDateTextView;
-        public final TextView mExpireDateTextView;
+        final ProductImageView mImageView;
+        final TextView mNameTextView;
+        final TextView mCreateDateTextView;
+        final TextView mExpireDateTextView;
 
         public ViewHolder(View itemView){
             super(itemView, mMultiSelector);

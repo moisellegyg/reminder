@@ -7,16 +7,22 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.DateFormat;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by ygong on 8/11/16.
  */
 public class Utils {
+
+    public static final long THREE_HOURS_IN_MILLIS = TimeUnit.MICROSECONDS.convert(3L, TimeUnit.HOURS);
+    public static final long ONE_DAYS_IN_MILLIS = TimeUnit.MILLISECONDS.convert(1L, TimeUnit.DAYS);
+    public static final long THREE_DAYS_IN_MILLIS = TimeUnit.MILLISECONDS.convert(3L, TimeUnit.DAYS);
+
     // The gesture threshold expressed in dp
     private static DisplayMetrics metrics = new DisplayMetrics();
     public static void setMetrics(Resources resources) {
@@ -31,7 +37,6 @@ public class Utils {
     public static int displayWidthPixels() {
         return metrics.widthPixels;
     }
-
 
     public static String getDateTimeString(long timestamp) {
         return DateFormat.getDateInstance(DateFormat.MEDIUM).format(new Date(timestamp));
@@ -104,8 +109,6 @@ public class Utils {
             outputStream.close();
             Log.d("saveBitmapFile", "new size: " + new File(path).length());
 
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -114,8 +117,31 @@ public class Utils {
     public static void deleteFile(String path) {
         File file = new File(path);
         if (file.exists()) {
-            file.delete();
-            Log.d("Utils", "file deleted");
+            boolean deleted = file.delete();
+            if (!deleted) {
+                Log.i("Utils", file.getName() + " cannot be deleted.");
+            }
         }
+    }
+
+    /**
+     * Get today 00:00 a.m. time in millisecond
+     * @return Today 00:00 a.m. in millisecond
+     */
+    public static long getTodayTimeInMillis() {
+        Calendar c = Calendar.getInstance();
+        int date = c.get(Calendar.DATE);
+        c.set(Calendar.DATE, date);
+        c.set(Calendar.HOUR_OF_DAY, 0);
+        c.set(Calendar.MINUTE, 0);
+        c.set(Calendar.SECOND, 0);
+        c.set(Calendar.MILLISECOND, 0);
+        Log.d("Utils", c.getTime().toString());
+        return c.getTimeInMillis();
+    }
+
+    public static long getCurrentTimeInMillis() {
+        Calendar c = Calendar.getInstance();
+        return c.getTimeInMillis();
     }
 }
