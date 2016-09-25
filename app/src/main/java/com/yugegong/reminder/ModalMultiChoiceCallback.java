@@ -6,7 +6,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 /**
- * Created by ygong on 8/23/16.
+ * Callback class that implements callback methods for action mode. After long pressing the view,
+ * action mode is invoked, callback methods will be called and {@link MultiSelector} will be in
+ * selectable mode as well.
  */
 public class ModalMultiChoiceCallback implements ActionMode.Callback {
     private static final String LOG_TAG = "ModalCallback";

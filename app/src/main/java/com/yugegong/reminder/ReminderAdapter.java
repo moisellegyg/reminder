@@ -20,16 +20,27 @@ import com.yugegong.reminder.data.ProductProvider;
 /**
  * Created by ygong on 8/3/16.
  */
-public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHolder> implements MultiSelector.MultiSelectorListener{
+public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHolder>
+        implements MultiSelector.MultiSelectorListener{
     private final static String TAG = ReminderAdapter.class.getSimpleName();
 
     private final OnItemClickedListener mOnItemClickedListener;
     private final Context mContext;
+    /**
+     * Cursor type data for the {@code ReminderAdapter}
+     */
     private Cursor mCursor;
 
+    /**
+     * Public constructor.
+     * @param context The context the adapter is being created in.
+     * @param listener Implementation for {@link ReminderAdapter.OnItemClickedListener}
+     */
     public ReminderAdapter(Context context, OnItemClickedListener listener) {
         mContext = context;
         mOnItemClickedListener = listener;
+        // Set to be true so that each list view item would has a unique ID.
+        // This will help the adapter to figure out which view items are selected by MultiSelector.
         setHasStableIds(true);
     }
 
@@ -47,8 +58,16 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
         }
     }
 
+    /**
+     * Interface definition for a callback to be invoked when a list view item in
+     * {@link ReminderAdapter} is being clicked.
+     */
     public interface OnItemClickedListener {
-        void onItemSelected(ViewHolder viewHolder);
+        /**
+         * Called when a list view item is being clicked.
+         * @param vh The view holder that holds the list view item being clicked
+         */
+        void onItemClicked(ViewHolder vh);
     }
 
     private ActionMode mActionMode;
@@ -108,6 +127,10 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
             itemView.setOnLongClickListener(this);
         }
 
+        /**
+         * Bind data with views in the current {@code ViewHolder}
+         * @param cursor Cursor type data will be bound
+         */
         public void bindView(Cursor cursor) {
             String name = cursor.getString(ProductListFragment.COL_PRODUCT_NAME);
             Log.d(TAG, name);
@@ -128,7 +151,7 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
         public void onClick(View v) {
             int position = getAdapterPosition();
             if (!toggleItemSelection(this, position, getItemId())) {
-                mOnItemClickedListener.onItemSelected(this);
+                mOnItemClickedListener.onItemClicked(this);
             }
         }
 
@@ -148,6 +171,14 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
         }
     }
 
+    /**
+     * Toggle the selection status of the current list view item. If the item is selected, then it
+     * will be unselected. If the item is not selected, then it will be selected.
+     * @param holder View holder that holds the list view item
+     * @param position The position of the list view item in the adapter
+     * @param _id Unique id of the list view item
+     * @return
+     */
     private boolean toggleItemSelection(MultiSelectableHolder holder, int position, long _id) {
         boolean success = mMultiSelector.toggleItemSelection(holder, position, _id);
         if (success) {

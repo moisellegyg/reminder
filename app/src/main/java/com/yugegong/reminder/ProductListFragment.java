@@ -103,7 +103,7 @@ public class ProductListFragment extends Fragment implements LoaderManager.Loade
         mRecyclerView.setHasFixedSize(true);
         mReminderAdapter = new ReminderAdapter(getContext(), new ReminderAdapter.OnItemClickedListener() {
             @Override
-            public void onItemSelected(ReminderAdapter.ViewHolder vh) {
+            public void onItemClicked(ReminderAdapter.ViewHolder vh) {
                 mPosition = vh.getAdapterPosition();
                 Log.v(TAG, "onClick mPosition = " + mPosition);
                 ((ProductListFragmentCallback)getActivity()).onItemSelected(vh);

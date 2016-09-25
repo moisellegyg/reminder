@@ -23,18 +23,45 @@ public class MultiSelector {
      * Running state of which positions are currently checked
      */
     private SparseBooleanArray mCheckStats = new SparseBooleanArray();
+    /**
+     * Corresponding ids of the checked items under running state
+     */
     private SparseLongArray mCheckIdStats = new SparseLongArray();
+    /**
+     * Weak references of the view holders
+     */
     private WeakHolderTracker mTracker = new WeakHolderTracker();
+    /**
+     * Count of items get selected
+     */
     private int mSelectedCount = 0;
 
+    /**
+     * Whether this {@code MultiSelector} is under selectable mode or not
+     */
     private boolean mIsSelectable;
 
+    /**
+     *
+     */
     public interface MultiSelectorListener {
+        /**
+         * Called when
+         * @return Bundle in which to place your saved state.
+         */
         Bundle saveMultiSelectorStats();
+
+        /**
+         *
+         * @param savedStats
+         */
         void restoreMultiSelectorStats(Bundle savedStats);
     }
 
-
+    /**
+     *
+     * @return
+     */
     public boolean isSelectable() {
         return mIsSelectable;
     }
@@ -48,6 +75,13 @@ public class MultiSelector {
         return mCheckStats.get(position, false);
     }
 
+    /**
+     *
+     * @param holder View holder that holds the list view item
+     * @param position The position of the list view item in the adapter
+     * @param _id Unique id of the list view item
+     * @param isSelected Whether list view item held by {@code holder} is selected or not
+     */
     public void setItemSelected(MultiSelectableHolder holder, int position, long _id, boolean isSelected) {
         mCheckStats.put(position, isSelected);
         mCheckIdStats.put(position, _id);
@@ -55,6 +89,13 @@ public class MultiSelector {
         refreshHolder(holder);
     }
 
+    /**
+     *
+     * @param holder View holder that holds the list view item
+     * @param position The position of the list view item in the adapter
+     * @param _id Unique id of the list view item
+     * @return Return {@code true} if the toggle operation is successful
+     */
     public boolean toggleItemSelection(MultiSelectableHolder holder, int position, long _id) {
         if (mIsSelectable) {
             boolean isSelected = isItemSelected(position);
@@ -65,6 +106,11 @@ public class MultiSelector {
         return false;
     }
 
+    /**
+     * Get the unique id of the item at position.
+     * @param position Adapter position to query
+     * @return The unique id of the item at position
+     */
     public long getItemId(int position) {
         return mCheckIdStats.get(position, -1);
     }
@@ -107,6 +153,10 @@ public class MultiSelector {
         holder.setActivated(isSelected);
     }
 
+    /**
+     * Save the selection state of {@code MultiSelector}
+     * @return Bundle in which to place your saved state
+     */
     public Bundle saveSelectionStats() {
         Log.d(LOG_TAG, "saveSelectionStats");
         Bundle bundle = new Bundle();
@@ -116,6 +166,10 @@ public class MultiSelector {
         return bundle;
     }
 
+    /**
+     * Restore the selection state of {@code MultiSelector}
+     * @param savedStats the data most recently returned by {@link MultiSelector#saveSelectionStats()}
+     */
     public void restoreSelectionStats(Bundle savedStats) {
         Log.d(LOG_TAG, "restoreSelectionStats");
         if (savedStats == null) return;
