@@ -15,23 +15,36 @@ import com.yugegong.reminder.ProductEditFragment;
 import com.yugegong.reminder.R;
 import com.yugegong.reminder.Utils;
 import com.yugegong.reminder.data.ProductContract;
-import static com.yugegong.reminder.notification.NotificationBroadcastReceiver.*;
+
+import static com.yugegong.reminder.notification.NotificationBroadcastReceiver.ACTION_PRODUCT_DISMISS;
+import static com.yugegong.reminder.notification.NotificationBroadcastReceiver.ACTION_PRODUCT_SET_USED;
 
 /**
- * Created by ygong on 8/30/16.
+ * This broadcast receiver receive broadcast from {@link AlarmService}. It will create a notification
+ * after receiving a broadcast. The created notification contains two actions:
+ * {@link NotificationBroadcastReceiver#ACTION_PRODUCT_DISMISS} and
+ * {@link NotificationBroadcastReceiver#ACTION_PRODUCT_SET_USED}, which would send out a broadcast
+ * respectively to {@link NotificationBroadcastReceiver} when user presses action buttons.
  */
 public class AlarmBroadcastReceiver extends BroadcastReceiver {
     private static final String LOG_TAG = AlarmBroadcastReceiver.class.getSimpleName();
 
     // keys of extras pass to intent.
+    /**
+     * Key to use when passing product name via intent
+     */
     public static final String KEY_PRODUCT_NAME = "product_name";
-    public static final String KEY_NOTIFICATION_ID = "notification_id";
+    /**
+     * Key to use when passing product expiration time via intent
+     */
     public static final String KEY_EXPIRED_TIME = "expired_time";
+    /**
+     * Key to use when passing notification id via intent
+     */
+    public static final String KEY_NOTIFICATION_ID = "notification_id";
 
     // Group Key to group notification
     private final static String GROUP_KEY_PRODUCTS = "group_key_products";
-
-    private NotificationManager mNotificationManager;
 
     private String mProductName;
     private Uri mProductUri;
@@ -58,16 +71,22 @@ public class AlarmBroadcastReceiver extends BroadcastReceiver {
         buildAndSendNotification();
     }
 
+    /**
+     * Build and send out a notification.
+     */
     private void buildAndSendNotification() {
         final NotificationCompat.Builder builder = getNotificationBuilder();
-
         createNotification(builder);
-
         NotificationManager notificationManager =
                 (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.notify(mNotificationId, builder.build());
     }
 
+    /**
+     * Create a {@link android.support.v7.app.NotificationCompat.Builder} instance and initialize
+     * it with general settings, including notification icon, title, content...
+     * @return A {@link android.support.v7.app.NotificationCompat.Builder} instance
+     */
     private NotificationCompat.Builder getNotificationBuilder() {
         long todayTime = Utils.getTodayTimeInMillis();
         int days = (int)((mExpiredTimestamp - todayTime) / Utils.ONE_DAYS_IN_MILLIS) + 1;
@@ -89,6 +108,8 @@ public class AlarmBroadcastReceiver extends BroadcastReceiver {
         addDismissAction(builder);
         addSetUsedAction(builder);
     }
+
+
     private void addDismissAction(NotificationCompat.Builder builder) {
         Log.d(this.toString(), "Will show \"dismiss\" action in the Notification");
         PendingIntent dismissPendingIntent = createNotificationPendingIntent(

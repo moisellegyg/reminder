@@ -6,14 +6,14 @@ import android.view.View;
 /**
  * Created by ygong on 8/24/16.
  */
-public abstract class MultiSelectableHolder extends RecyclerView.ViewHolder {
-    private final MultiSelector mMultiSelector;
+public abstract class MultiSelectableViewHolder extends RecyclerView.ViewHolder {
+    private final MultiSelectionState mMultiSelectionState;
 
     private boolean mIsSelectable = false;
 
-    public MultiSelectableHolder(View itemView, MultiSelector selector) {
+    public MultiSelectableViewHolder(View itemView, MultiSelectionState selector) {
         super(itemView);
-        mMultiSelector = selector;
+        mMultiSelectionState = selector;
     }
 
 
@@ -46,6 +46,6 @@ public abstract class MultiSelectableHolder extends RecyclerView.ViewHolder {
     }
 
     protected void onBindSelector(){
-        mMultiSelector.bindHolder(this, getAdapterPosition(), getItemId());
+        mMultiSelectionState.bindHolder(this, getAdapterPosition(), getItemId());
     }
 }

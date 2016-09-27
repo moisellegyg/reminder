@@ -11,33 +11,44 @@ import android.util.Log;
 import com.yugegong.reminder.ProductEditFragment;
 import com.yugegong.reminder.Utils;
 import com.yugegong.reminder.data.ProductContract;
-import com.yugegong.reminder.data.ProductQueryHandler;
 
 /**
- * Created by ygong on 9/15/16.
+ * Receive the broadcast from the notification created in {@link AlarmBroadcastReceiver} when user
+ * press an action button on the notification card.
  */
 public class NotificationBroadcastReceiver extends BroadcastReceiver {
     private static final String LOG_TAG = NotificationBroadcastReceiver.class.getSimpleName();
 
-    // Dismiss action to take in the notification card
+    /**
+     * Dismiss action for the notification.
+     * This action will reset a new alarm for the related product and dismiss the notification card.
+     */
     public static final String ACTION_PRODUCT_DISMISS =
             "com.yugegong.reminder.ACTION_PRODUCT_DISMISS";
-    // Set product used action to take in the notification card
+    /**
+     * This action will set the related product having already been used. Database will be updated.
+     * Notification card will be dismissed afterwards.
+      */
     public static final String ACTION_PRODUCT_SET_USED =
             "com.yugegong.reminder.ACTION_PRODUCT_SET_USED";
 
-    public static final int TIME_INTERVAL_IN_MILLIS = 21600000; // 6hrs
-    public static ProductQueryHandler handler;
+//    public static ProductQueryHandler handler;
 
     private Context mContext;
 
+    /**
+     * This method is called when {@code NotificationBroadcastReceiver} is receiving an intent
+     * broadcast from {@link AlarmBroadcastReceiver}. The intent can have two different actions:
+     * {@link NotificationBroadcastReceiver#ACTION_PRODUCT_DISMISS} and
+     * {@link NotificationBroadcastReceiver#ACTION_PRODUCT_SET_USED}.
+     */
     @Override
     public void onReceive(Context context, Intent intent) {
         final String action = intent.getAction();
         Log.i(this.toString(), "Broadcast from Notification: " + action);
 
         mContext = context;
-        if (handler != null) handler = new ProductQueryHandler(context.getContentResolver());
+//        if (handler != null) handler = new ProductQueryHandler(context.getContentResolver());
         int notificationId = intent.getIntExtra(AlarmBroadcastReceiver.KEY_NOTIFICATION_ID, -1);
         String productName = intent.getStringExtra(AlarmBroadcastReceiver.KEY_PRODUCT_NAME);
         long expiredTime = intent.getLongExtra(AlarmBroadcastReceiver.KEY_EXPIRED_TIME, -1L);
@@ -88,7 +99,10 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
         mContext.getContentResolver().update(productUri, cv, null, null);
     }
 
-
+    /**
+     * Cancel the notification with a specified id.
+     * @param notificationId Unique id of the notification.
+     */
     public void cancelNotification(int notificationId) {
         NotificationManager manager =
                 (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);

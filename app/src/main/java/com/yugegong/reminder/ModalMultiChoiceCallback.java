@@ -7,22 +7,22 @@ import android.view.MenuItem;
 
 /**
  * Callback class that implements callback methods for action mode. After long pressing the view,
- * action mode is invoked, callback methods will be called and {@link MultiSelector} will be in
+ * action mode is invoked, callback methods will be called and {@link MultiSelectionState} will be in
  * selectable mode as well.
  */
 public class ModalMultiChoiceCallback implements ActionMode.Callback {
     private static final String LOG_TAG = "ModalCallback";
 
-    private MultiSelector mMultiSelector;
+    private MultiSelectionState mMultiSelectionState;
 
-    public ModalMultiChoiceCallback(MultiSelector selector) {
-        mMultiSelector = selector;
+    public ModalMultiChoiceCallback(MultiSelectionState selector) {
+        mMultiSelectionState = selector;
     }
 
     @Override
     public boolean onCreateActionMode(ActionMode mode, Menu menu) {
         Log.d(LOG_TAG, "onCreateActionMode");
-        mMultiSelector.setSelectable(true);
+        mMultiSelectionState.setSelectable(true);
         return false;
     }
 
@@ -39,7 +39,7 @@ public class ModalMultiChoiceCallback implements ActionMode.Callback {
     @Override
     public void onDestroyActionMode(ActionMode mode) {
         Log.d(LOG_TAG, "onDestroyActionMode");
-        mMultiSelector.clearSelections();
-        mMultiSelector.setSelectable(false);
+        mMultiSelectionState.clearSelections();
+        mMultiSelectionState.setSelectable(false);
     }
 }

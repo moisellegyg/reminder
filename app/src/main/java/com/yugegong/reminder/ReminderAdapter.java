@@ -20,11 +20,10 @@ import com.yugegong.reminder.data.ProductProvider;
 /**
  * Created by ygong on 8/3/16.
  */
-public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHolder>
-        implements MultiSelector.MultiSelectorListener{
+public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHolder> {
     private final static String TAG = ReminderAdapter.class.getSimpleName();
 
-    private final OnItemClickedListener mOnItemClickedListener;
+    private final OnItemClickCallback mOnItemClickCallback;
     private final Context mContext;
     /**
      * Cursor type data for the {@code ReminderAdapter}
@@ -34,35 +33,21 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
     /**
      * Public constructor.
      * @param context The context the adapter is being created in.
-     * @param listener Implementation for {@link ReminderAdapter.OnItemClickedListener}
+     * @param listener Implementation for {@link OnItemClickCallback}
      */
-    public ReminderAdapter(Context context, OnItemClickedListener listener) {
+    public ReminderAdapter(Context context, OnItemClickCallback listener) {
         mContext = context;
-        mOnItemClickedListener = listener;
+        mOnItemClickCallback = listener;
         // Set to be true so that each list view item would has a unique ID.
-        // This will help the adapter to figure out which view items are selected by MultiSelector.
+        // This will help the adapter to figure out which view items are selected by MultiSelectionState.
         setHasStableIds(true);
-    }
-
-    @Override
-    public Bundle saveMultiSelectorStats() {
-        return mMultiSelector.saveSelectionStats();
-    }
-
-    @Override
-    public void restoreMultiSelectorStats(Bundle savedStats) {
-        mMultiSelector.restoreSelectionStats(savedStats);
-        if (mMultiSelector.isSelectable()) {
-            mActionMode = ((AppCompatActivity) mContext).startSupportActionMode(mActionModeCallback);
-            updateActionModeTitle();
-        }
     }
 
     /**
      * Interface definition for a callback to be invoked when a list view item in
      * {@link ReminderAdapter} is being clicked.
      */
-    public interface OnItemClickedListener {
+    public interface OnItemClickCallback {
         /**
          * Called when a list view item is being clicked.
          * @param vh The view holder that holds the list view item being clicked
@@ -71,8 +56,8 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
     }
 
     private ActionMode mActionMode;
-    private MultiSelector mMultiSelector = new MultiSelector();
-    private ModalMultiChoiceCallback mActionModeCallback = new ModalMultiChoiceCallback(mMultiSelector) {
+    private MultiSelectionState mMultiSelectionState = new MultiSelectionState();
+    private ModalMultiChoiceCallback mActionModeCallback = new ModalMultiChoiceCallback(mMultiSelectionState) {
 
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
@@ -89,14 +74,15 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
                 case R.id.action_delete: {
                     int total = getItemCount();
                     for (int i = 0; i < total; i++) {
-                        if (mMultiSelector.isItemSelected(i)) {
-                            long _id = mMultiSelector.getItemId(i);
+                        if (mMultiSelectionState.isItemSelected(i)) {
+                            long _id = mMultiSelectionState.getItemId(i);
                             Log.d(TAG, "delete _id = " + _id);
                             String[] selectionArgs = {Long.toString(_id)};
                             mContext.getContentResolver().delete(
                                     ProductContract.ProductEntry.CONTENT_URI,
                                     ProductProvider.PRODUCT_ID_SELECTION,
                                     selectionArgs);
+
 //                            notifyItemRemoved(i);
                         }
                     }
@@ -109,7 +95,33 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
         }
     };
 
-    public class ViewHolder extends MultiSelectableHolder
+    /**
+     * Save the state of this adapter. In this case, save the data of {@link MultiSelectionState}
+     * used by this adapter.
+     * @return Bundle in which to place your saved state
+     */
+    public Bundle saveAdapterState() {
+        return mMultiSelectionState.saveSelectionStats();
+    }
+
+    /**
+     * Restore the data of {@link MultiSelectionState} used by this adapter. It will also restore
+     * the {@link ActionMode} status of the context in which this adapter is being used.
+     * @param savedState Previous saved state for this adapter
+     */
+    public void restoreAdapterState(Bundle savedState) {
+        mMultiSelectionState.restoreSelectionStats(savedState);
+        if (mMultiSelectionState.isSelectable()) {
+            mActionMode = ((AppCompatActivity) mContext).startSupportActionMode(mActionModeCallback);
+            updateActionModeTitle();
+        }
+    }
+
+    /**
+     * Customized {@link RecyclerView.ViewHolder} used by the {@link ReminderAdapter}.
+     * Each view holder in the adapter holds a view item for a single product.
+     */
+    public class ViewHolder extends MultiSelectableViewHolder
             implements View.OnClickListener, View.OnLongClickListener {
 
         final ProductImageView mImageView;
@@ -118,7 +130,7 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
         final TextView mExpireDateTextView;
 
         public ViewHolder(View itemView){
-            super(itemView, mMultiSelector);
+            super(itemView, mMultiSelectionState);
             mImageView = (ProductImageView) itemView.findViewById(R.id.product_image);
             mNameTextView = (TextView) itemView.findViewById(R.id.product_name);
             mCreateDateTextView = (TextView) itemView.findViewById(R.id.item_create_date);
@@ -147,22 +159,32 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
             mImageView.loadImageFromFile(path);
         }
 
+        /**
+         * This method will be called when user clicks a view item. If the {@link MultiSelectionState}
+         * is turned on, this view will be added to the selected list.
+         * Otherwise, it will navigate to the edit page of this selected product. Normally,a
+         * {@link ProductEditActivity} will be started.
+         */
         @Override
         public void onClick(View v) {
             int position = getAdapterPosition();
             if (!toggleItemSelection(this, position, getItemId())) {
-                mOnItemClickedListener.onItemClicked(this);
+                mOnItemClickCallback.onItemClicked(this);
             }
         }
 
+        /**
+         * This method will be called when user long presses a view item. Action mode and
+         * multi-selection status will be started for the related {@link RecyclerView}.
+         */
         @Override
         public boolean onLongClick(View v) {
             Log.d("VH", "onLongClick");
             int position = getAdapterPosition();
-            if (!mMultiSelector.isSelectable()) {
+            if (!mMultiSelectionState.isSelectable()) {
                 mActionMode = ((AppCompatActivity) mContext).startSupportActionMode(mActionModeCallback);
                 // The first checked item in multi choice mode
-                mMultiSelector.setItemSelected(this, position, getItemId(), true);
+                mMultiSelectionState.setItemSelected(this, position, getItemId(), true);
                 updateActionModeTitle();
                 return true;
             }
@@ -179,17 +201,20 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
      * @param _id Unique id of the list view item
      * @return
      */
-    private boolean toggleItemSelection(MultiSelectableHolder holder, int position, long _id) {
-        boolean success = mMultiSelector.toggleItemSelection(holder, position, _id);
+    private boolean toggleItemSelection(MultiSelectableViewHolder holder, int position, long _id) {
+        boolean success = mMultiSelectionState.toggleItemSelection(holder, position, _id);
         if (success) {
             updateActionModeTitle();
         }
         return success;
     }
 
+    /**
+     * Update the title of the action bar when action mode is turned on.
+     */
     private void updateActionModeTitle() {
         if (mActionMode == null) return;
-        int count = mMultiSelector.getSelectedItemCount();
+        int count = mMultiSelectionState.getSelectedItemCount();
         String title = mContext.getResources()
                 .getQuantityString(R.plurals.number_of_items_selected, count, count);
         mActionMode.setTitle(title);
@@ -208,7 +233,7 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         Log.d(TAG, "onBindViewHolder " + position + " " + mCursor.getCount() + " "
-                + holder.itemView.isActivated() + " " + mMultiSelector.isItemSelected(position));
+                + holder.itemView.isActivated() + " " + mMultiSelectionState.isItemSelected(position));
 
         if (mCursor == null) return;
         if (mCursor.moveToPosition(position)) {
@@ -233,6 +258,10 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
         return mCursor.getCount();
     }
 
+    /**
+     * Call this method when data for this adapter needs to be refreshed.
+     * @param newCursor
+     */
     public void swapCursor(Cursor newCursor) {
         Log.d(TAG, "swap1!");
         mCursor = newCursor;

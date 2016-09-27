@@ -28,6 +28,8 @@ import com.yugegong.reminder.data.ProductContract;
 public class ProductListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     private final static String TAG = ProductListFragment.class.getSimpleName();
 
+    private final static String KEY_ADAPTER_BUNDLE = "adapter_bundle";
+
     /**
      * Type of product the adapter will load. There are three types of product in total:<br>
      * {@link DataLoadType#DATA_LOAD_FRESH} - Products haven't been used and aren't expired yet.<br>
@@ -89,8 +91,13 @@ public class ProductListFragment extends Fragment implements LoaderManager.Loade
         setHasOptionsMenu(true);
     }
 
-    public interface ProductListFragmentCallback {
-        void onItemSelected(ReminderAdapter.ViewHolder vh);
+    public interface ProductViewProvider {
+        /**
+         *
+         * @param _id product id
+         * @param imageView {@link ProductImageView} that holds the image for the related product
+         */
+        void openProductView(long _id, ProductImageView imageView);
     }
 
     @Override
@@ -101,12 +108,12 @@ public class ProductListFragment extends Fragment implements LoaderManager.Loade
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.recyclerview_reminders);
         mRecyclerView.setHasFixedSize(true);
-        mReminderAdapter = new ReminderAdapter(getContext(), new ReminderAdapter.OnItemClickedListener() {
+        mReminderAdapter = new ReminderAdapter(getContext(), new ReminderAdapter.OnItemClickCallback() {
             @Override
             public void onItemClicked(ReminderAdapter.ViewHolder vh) {
-                mPosition = vh.getAdapterPosition();
-                Log.v(TAG, "onClick mPosition = " + mPosition);
-                ((ProductListFragmentCallback)getActivity()).onItemSelected(vh);
+//                mPosition = vh.getAdapterPosition();
+//                Log.v(TAG, "onClick mPosition = " + mPosition);
+                ((ProductViewProvider)getActivity()).openProductView(vh.getItemId(), vh.mImageView);
             }
         });
         mRecyclerView.setAdapter(mReminderAdapter);
@@ -131,17 +138,17 @@ public class ProductListFragment extends Fragment implements LoaderManager.Loade
         Log.d(TAG, "onViewStateRestored");
         super.onViewStateRestored(savedInstanceState);
         if (savedInstanceState != null) {
-            Bundle bundle = savedInstanceState.getBundle(TAG);
-            mReminderAdapter.restoreMultiSelectorStats(bundle);
+            Bundle bundle = savedInstanceState.getBundle(KEY_ADAPTER_BUNDLE);
+            mReminderAdapter.restoreAdapterState(bundle);
         }
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         Log.d(TAG, "onSaveInstanceState");
-        Bundle bundle = mReminderAdapter.saveMultiSelectorStats();
+        Bundle bundle = mReminderAdapter.saveAdapterState();
         if (bundle != null) {
-            outState.putBundle(TAG, bundle);
+            outState.putBundle(KEY_ADAPTER_BUNDLE, bundle);
         }
         super.onSaveInstanceState(outState);
 

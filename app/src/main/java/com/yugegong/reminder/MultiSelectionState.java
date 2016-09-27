@@ -13,8 +13,8 @@ import java.util.List;
 /**
  * Created by ygong on 8/22/16.
  */
-public class MultiSelector {
-    private static final String LOG_TAG = MultiSelector.class.getSimpleName();
+public class MultiSelectionState {
+    private static final String LOG_TAG = MultiSelectionState.class.getSimpleName();
     private static final String KEY_SELECTED_POSITIONS = "positions";
     private static final String KEY_SELECTOR_STATE = "state";
 
@@ -37,30 +37,12 @@ public class MultiSelector {
     private int mSelectedCount = 0;
 
     /**
-     * Whether this {@code MultiSelector} is under selectable mode or not
+     * Whether this {@code MultiSelectionState} is under selectable mode or not
      */
     private boolean mIsSelectable;
 
     /**
-     *
-     */
-    public interface MultiSelectorListener {
-        /**
-         * Called when
-         * @return Bundle in which to place your saved state.
-         */
-        Bundle saveMultiSelectorStats();
-
-        /**
-         *
-         * @param savedStats
-         */
-        void restoreMultiSelectorStats(Bundle savedStats);
-    }
-
-    /**
-     *
-     * @return
+     * @return Whether this {@code MultiSelectionState} is selectable or not.
      */
     public boolean isSelectable() {
         return mIsSelectable;
@@ -82,7 +64,7 @@ public class MultiSelector {
      * @param _id Unique id of the list view item
      * @param isSelected Whether list view item held by {@code holder} is selected or not
      */
-    public void setItemSelected(MultiSelectableHolder holder, int position, long _id, boolean isSelected) {
+    public void setItemSelected(MultiSelectableViewHolder holder, int position, long _id, boolean isSelected) {
         mCheckStats.put(position, isSelected);
         mCheckIdStats.put(position, _id);
         mSelectedCount += isSelected ? 1 : -1;
@@ -96,7 +78,7 @@ public class MultiSelector {
      * @param _id Unique id of the list view item
      * @return Return {@code true} if the toggle operation is successful
      */
-    public boolean toggleItemSelection(MultiSelectableHolder holder, int position, long _id) {
+    public boolean toggleItemSelection(MultiSelectableViewHolder holder, int position, long _id) {
         if (mIsSelectable) {
             boolean isSelected = isItemSelected(position);
             Log.d(LOG_TAG, position + "/" + _id + " isSelected = " + isSelected);
@@ -116,10 +98,13 @@ public class MultiSelector {
     }
 
     private long getHolderId(int position) {
-        MultiSelectableHolder holder = mTracker.getHolder(position);
+        MultiSelectableViewHolder holder = mTracker.getHolder(position);
         return holder != null ? holder.getItemId() : -1;
     }
 
+    /**
+     * Clear the selection data for the current {@link MultiSelectionState} instance.
+     */
     public void clearSelections() {
         mCheckStats.clear();
         mCheckIdStats.clear();
@@ -131,21 +116,21 @@ public class MultiSelector {
         return mSelectedCount;
     }
 
-    public void bindHolder(MultiSelectableHolder holder, int position, long _id) {
+    public void bindHolder(MultiSelectableViewHolder holder, int position, long _id) {
         Log.d(LOG_TAG, "Bind holder " + position + " _id = " + _id);
         mTracker.bindHolder(position, holder);
         refreshHolder(holder);
     }
 
     private void refreshAllHolders() {
-        List<MultiSelectableHolder> holders = mTracker.getHolders();
+        List<MultiSelectableViewHolder> holders = mTracker.getHolders();
         Log.d(LOG_TAG, "refresh all " + holders.size());
-        for (MultiSelectableHolder holder : holders) {
+        for (MultiSelectableViewHolder holder : holders) {
             refreshHolder(holder);
         }
     }
 
-    private void refreshHolder(MultiSelectableHolder holder) {
+    private void refreshHolder(MultiSelectableViewHolder holder) {
         if (holder == null) return;
         holder.setSelectable(mIsSelectable);
         boolean isSelected = mCheckStats.get(holder.getAdapterPosition(), false);
@@ -154,7 +139,7 @@ public class MultiSelector {
     }
 
     /**
-     * Save the selection state of {@code MultiSelector}
+     * Save the selection state of {@code MultiSelectionState}
      * @return Bundle in which to place your saved state
      */
     public Bundle saveSelectionStats() {
@@ -167,8 +152,8 @@ public class MultiSelector {
     }
 
     /**
-     * Restore the selection state of {@code MultiSelector}
-     * @param savedStats the data most recently returned by {@link MultiSelector#saveSelectionStats()}
+     * Restore the selection state of {@code MultiSelectionState}
+     * @param savedStats the data most recently returned by {@link MultiSelectionState#saveSelectionStats()}
      */
     public void restoreSelectionStats(Bundle savedStats) {
         Log.d(LOG_TAG, "restoreSelectionStats");
@@ -203,17 +188,17 @@ public class MultiSelector {
     }
 
     private static class WeakHolderTracker {
-        private SparseArray<WeakReference<MultiSelectableHolder>> mHolders = new SparseArray<>();
+        private SparseArray<WeakReference<MultiSelectableViewHolder>> mHolders = new SparseArray<>();
 
-        void bindHolder(int position, MultiSelectableHolder holder) {
+        void bindHolder(int position, MultiSelectableViewHolder holder) {
             mHolders.put(position, new WeakReference<>(holder));
         }
 
-        MultiSelectableHolder getHolder(int position) {
-            WeakReference<MultiSelectableHolder> weakRef = mHolders.get(position);
+        MultiSelectableViewHolder getHolder(int position) {
+            WeakReference<MultiSelectableViewHolder> weakRef = mHolders.get(position);
             if (weakRef == null) return null;
 
-            MultiSelectableHolder holder = weakRef.get();
+            MultiSelectableViewHolder holder = weakRef.get();
             if (holder == null || holder.getAdapterPosition() != position) {
                 mHolders.delete(position);
                 return null;
@@ -221,12 +206,12 @@ public class MultiSelector {
             return holder;
         }
 
-        List<MultiSelectableHolder> getHolders() {
+        List<MultiSelectableViewHolder> getHolders() {
             int n = mHolders.size();
-            List<MultiSelectableHolder> list = new ArrayList<>(n);
+            List<MultiSelectableViewHolder> list = new ArrayList<>(n);
             for (int i = 0; i < n; i++) {
                 int position = mHolders.keyAt(i);
-                MultiSelectableHolder holder = getHolder(position);
+                MultiSelectableViewHolder holder = getHolder(position);
                 if (holder != null) {
                     list.add(holder);
                 }

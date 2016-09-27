@@ -19,7 +19,7 @@ import android.view.View;
 
 import com.yugegong.reminder.data.ProductContract;
 
-public class MainActivity extends AppCompatActivity implements ProductListFragment.ProductListFragmentCallback {
+public class MainActivity extends AppCompatActivity implements ProductListFragment.ProductViewProvider {
 
     /**
      * The number of pages (wizard steps) to show in this demo.
@@ -99,8 +99,8 @@ public class MainActivity extends AppCompatActivity implements ProductListFragme
 //    }
 
     @Override
-    public void onItemSelected(ReminderAdapter.ViewHolder vh) {
-        long _id = vh.getItemId();
+    public void openProductView(long _id, ProductImageView imageView) {
+//        long _id = vh.getItemId();
         Uri productUri = ProductContract.ProductEntry.buildProductUri(_id);
         Intent editIntent = new Intent(this, ProductEditActivity.class);
         editIntent.putExtra(ProductEditFragment.INTENT_EXTRA_DISABLE_DELETE_MENU_OPTION, false);
@@ -109,7 +109,7 @@ public class MainActivity extends AppCompatActivity implements ProductListFragme
         String transitionName = getString(R.string.transition_product_img);
         ActivityOptionsCompat options =
                 ActivityOptionsCompat.makeSceneTransitionAnimation(this,
-                        vh.mImageView,   // The view which starts the transition
+                        imageView,   // The view which starts the transition
                         transitionName    // The transitionName of the view we are transitioning to
                 );
         ActivityCompat.startActivity(this, editIntent, options.toBundle());
