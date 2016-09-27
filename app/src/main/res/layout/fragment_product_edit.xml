@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:custom="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/product_edit_root"
@@ -13,12 +14,11 @@
         android:id="@+id/product_image_frame"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="@dimen/activity_vertical_margin"
         android:clickable="true"
         android:background="@color/colorBackground"
         android:foreground="@drawable/touch_ripple">
         <com.yugegong.reminder.ProductImageView
-            xmlns:custom="http://schemas.android.com/apk/res-auto"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:id="@+id/product_image"
@@ -31,7 +31,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="@dimen/activity_vertical_margin"
         android:orientation="vertical">
         <android.support.design.widget.TextInputLayout
             android:layout_width="match_parent"
@@ -61,7 +61,8 @@
                     android:fontFamily="sans-serif"
                     android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                     android:inputType="textNoSuggestions"
-                    android:id="@+id/created_time"/>
+                    android:id="@+id/created_time"
+                    custom:dateType="startDate"/>
             </android.support.design.widget.TextInputLayout>
 
             <android.support.design.widget.TextInputLayout
@@ -75,13 +76,14 @@
                     android:fontFamily="sans-serif"
                     android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                     android:inputType="textNoSuggestions"
-                    android:id="@+id/expired_time"/>
+                    android:id="@+id/expired_time"
+                    custom:dateType="endDate"/>
             </android.support.design.widget.TextInputLayout>
         </LinearLayout>
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/activity_vertical_margin"
             android:orientation="horizontal">
             <CheckBox
                 android:id="@+id/checkbox_is_used"

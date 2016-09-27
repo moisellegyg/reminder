@@ -121,7 +121,7 @@ public class AlarmBroadcastReceiver extends BroadcastReceiver {
                 mExpiredTimestamp);
         NotificationCompat.Action action = new NotificationCompat.Action.Builder(
                 R.drawable.ic_alarm_black_24dp,
-                mContext.getString(R.string.action_dismiss),
+                mContext.getString(R.string.notif_action_dismiss),
                 dismissPendingIntent)
                 .build();
         builder.addAction(action);
@@ -139,7 +139,7 @@ public class AlarmBroadcastReceiver extends BroadcastReceiver {
                 mExpiredTimestamp);
         NotificationCompat.Action action = new NotificationCompat.Action.Builder(
                 R.drawable.ic_done_black_24dp,
-                mContext.getString(R.string.action_used),
+                mContext.getString(R.string.notif_action_used),
                 setUsedPendingIntent)
                 .build();
         builder.addAction(action);

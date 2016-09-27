@@ -6,6 +6,5 @@
     android:layout_height="match_parent"
     android:paddingRight="8dp"
     android:paddingLeft="8dp"
-    tools:context=".ProductListFragment"
-    tools:showIn="@layout/activity_main" />
+    tools:context=".ProductListFragment" />
 

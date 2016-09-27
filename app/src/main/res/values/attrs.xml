@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <declare-styleable name="DatePickEditText">
+        <attr name="dateType" format="enum">
+            <enum name="startDate" value="0"/>
+            <enum name="endDate" value="1"/>
+        </attr>
+    </declare-styleable>
     <declare-styleable name="ProductImageView">
         <attr name="imgLoaded" format="boolean"/>
     </declare-styleable>

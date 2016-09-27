@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:custom="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/product_edit_root"
@@ -17,7 +18,6 @@
         android:background="@color/colorBackground"
         android:foreground="@drawable/touch_ripple">
         <com.yugegong.reminder.ProductImageView
-            xmlns:custom="http://schemas.android.com/apk/res/com.yugegong.reminder"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:id="@+id/product_image"
@@ -32,7 +32,7 @@
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="1"
-        android:layout_marginStart="16dp"
+        android:layout_marginStart="@dimen/activity_horizontal_margin"
         android:orientation="vertical"
         android:gravity="center_vertical">
         <android.support.design.widget.TextInputLayout
@@ -58,7 +58,8 @@
                 android:fontFamily="sans-serif"
                 android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                 android:inputType="textNoSuggestions"
-                android:id="@+id/created_time"/>
+                android:id="@+id/created_time"
+                custom:dateType="startDate"/>
         </android.support.design.widget.TextInputLayout>
 
 
@@ -72,14 +73,15 @@
                 android:fontFamily="sans-serif"
                 android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                 android:inputType="textNoSuggestions"
-                android:id="@+id/expired_time"/>
+                android:id="@+id/expired_time"
+                custom:dateType="endDate"/>
         </android.support.design.widget.TextInputLayout>
 
         <CheckBox
             android:id="@+id/checkbox_is_used"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/activity_vertical_margin"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             android:text="This product is used already"/>
     </LinearLayout>

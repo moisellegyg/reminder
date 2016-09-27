@@ -5,6 +5,7 @@ import android.app.DatePickerDialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.TypedArray;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -101,26 +102,45 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
 
     public static class DatePickEditText extends TextInputEditText implements DatePickerDialog.OnDateSetListener {
 
+        private static final int START_DATE_TYPE = 0;
+        private static final int END_DATE_TYPE = 1;
         private long timestamp = -1;
+        // startDate = 0, endDate = 1;
+        private int mDateType = 0;
 
         public DatePickEditText(Context context) {
             super(context);
         }
         public DatePickEditText(Context context, AttributeSet attrs) {
             super(context, attrs);
-        }
-        public DatePickEditText(Context context, AttributeSet attrs, int defStyleAttr) {
-            super(context, attrs, defStyleAttr);
+            TypedArray a = context.getTheme().obtainStyledAttributes(
+                    attrs,
+                    R.styleable.DatePickEditText,
+                    0, 0);
+
+            try {
+                mDateType = a.getInteger(R.styleable.DatePickEditText_dateType, 0);
+            } finally {
+                a.recycle();
+            }
         }
 
         @Override
         public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
             Calendar rightNow = Calendar.getInstance();
             rightNow.set(year, monthOfYear, dayOfMonth);
-            rightNow.set(Calendar.HOUR_OF_DAY, 0);
-            rightNow.set(Calendar.MINUTE, 0);
-            rightNow.set(Calendar.SECOND, 0);
-            rightNow.set(Calendar.MILLISECOND, 0);
+            if (mDateType == END_DATE_TYPE) {
+                rightNow.set(Calendar.HOUR_OF_DAY, 23);
+                rightNow.set(Calendar.MINUTE, 59);
+                rightNow.set(Calendar.SECOND, 59);
+                rightNow.set(Calendar.MILLISECOND, 0);
+            } else {
+                rightNow.set(Calendar.HOUR_OF_DAY, 0);
+                rightNow.set(Calendar.MINUTE, 0);
+                rightNow.set(Calendar.SECOND, 0);
+                rightNow.set(Calendar.MILLISECOND, 0);
+            }
+
             Log.d(TAG, rightNow.getTime().toString());
             timestamp = rightNow.getTimeInMillis();
             this.setText(Utils.getDateTimeString(timestamp));
@@ -443,13 +463,13 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
             Log.d("EditProductTask", "doInBackground");
             mProductName = params[0];
             Long createTimestamp = Long.parseLong(params[1]);
-            mExpireTimestamp = Long.parseLong(params[2]) + Utils.ONE_DAYS_IN_MILLIS - 1000L;
+            mExpireTimestamp = Long.parseLong(params[2]);
+            Calendar c = Calendar.getInstance();
+            c.setTimeInMillis(mExpireTimestamp);
+            Log.d("EditProductTask", "expiredTime = " + c.getTime().toString());
+
             String imgPath = params[3];
             String isUsed = params[4];
-
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTimeInMillis(mExpireTimestamp);
-            Log.d("EditProductTask", "expiredTime = " + calendar.getTime().toString());
 
             ContentValues contentValues = new ContentValues();
             contentValues.put(ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_NAME, mProductName);
