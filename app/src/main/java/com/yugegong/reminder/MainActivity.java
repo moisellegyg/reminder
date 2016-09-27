@@ -43,7 +43,7 @@ public class MainActivity extends AppCompatActivity implements ProductListFragme
 
     private TabCallback mTabCallback;
     interface TabCallback {
-        void exitActionMode();
+        void changeTab();
     }
 
     public void setTabCallback(TabCallback callback) {
@@ -72,7 +72,7 @@ public class MainActivity extends AppCompatActivity implements ProductListFragme
             public void onTabSelected(TabLayout.Tab tab) {
                 if (mTabCallback != null) {
                     Log.d("Tablayout", tab.toString());
-                    mTabCallback.exitActionMode();
+                    mTabCallback.changeTab();
                 }
             }
 

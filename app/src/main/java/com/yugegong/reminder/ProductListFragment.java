@@ -115,13 +115,12 @@ public class ProductListFragment extends Fragment implements LoaderManager.Loade
                 ((ProductViewProvider)getActivity()).openProductView(vh.getItemId(), vh.mImageView);
             }
         });
-        MainActivity.TabCallback callback = new MainActivity.TabCallback() {
+        ((MainActivity) getActivity()).setTabCallback(new MainActivity.TabCallback() {
             @Override
-            public void exitActionMode() {
+            public void changeTab() {
                 mReminderAdapter.exitActionMode();
             }
-        };
-        ((MainActivity) getActivity()).setTabCallback(callback);
+        });
 
         mRecyclerView.setAdapter(mReminderAdapter);
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
