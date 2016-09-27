@@ -105,8 +105,9 @@ public class AlarmBroadcastReceiver extends BroadcastReceiver {
     }
 
     private void createNotification(NotificationCompat.Builder builder) {
-        addDismissAction(builder);
+        // The order of calling these two methods below matters for the UI.
         addSetUsedAction(builder);
+        addDismissAction(builder);
     }
 
 

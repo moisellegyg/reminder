@@ -35,7 +35,7 @@
                 android:padding="4dp"
                 android:layout_alignParentBottom="true"
                 android:background="@color/transparent_colorPrimary"
-                android:textColor="@android:color/primary_text_dark"
+                android:textColor="@color/cardview_title_text_color"
                 android:gravity="center"
                 android:textAppearance="@android:style/TextAppearance.Material.Title"
                 android:text="Watermelon"/>
@@ -53,23 +53,27 @@
                 app:layout_columnWeight="1"
                 app:layout_rowWeight="1"
                 app:layout_gravity="fill"
-                android:text="CREATED DATE"/>
+                android:text="CREATED DATE"
+                android:textColor="@color/cardview_content_text_color"/>
             <TextView android:id="@+id/item_create_date"
                 style="@style/DateTextStyle"
                 app:layout_columnWeight="1"
                 app:layout_gravity="fill"
-                android:text="2016-08-02"/>
+                android:text="2016-08-02"
+                android:textColor="@color/cardview_content_text_color"/>
             <TextView android:id="@+id/item_expire_title"
                 style="@style/DateTextStyle"
                 app:layout_columnWeight="1"
                 app:layout_rowWeight="1"
                 app:layout_gravity="fill"
-                android:text="EXPIRED DATE"/>
+                android:text="EXPIRED DATE"
+                android:textColor="@color/cardview_content_text_color"/>
             <TextView android:id="@+id/item_expire_date"
                 style="@style/DateTextStyle"
                 app:layout_columnWeight="1"
                 app:layout_gravity="fill"
-                android:text="2016-08-22"/>
+                android:text="2016-08-22"
+                android:textColor="@color/cardview_content_text_color"/>
         </android.support.v7.widget.GridLayout>
 
     </LinearLayout>

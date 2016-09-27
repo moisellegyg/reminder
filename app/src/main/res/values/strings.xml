@@ -26,6 +26,7 @@
     <string name="notif_title">Action needed!</string>
     <string name="notif_product_expiring_desc"><xliff:g id="product_name" example="Milk">%s</xliff:g> will be expired in <xliff:g id="day_count" example="3">%d days!</xliff:g></string>
     <string name="notif_product_expiring_today_desc"><xliff:g id="product_name" example="Milk">%s</xliff:g> will be expired today!</string>
+    <string name="notif_product_expired_desc"><xliff:g id="product_name" example="Milk">%s</xliff:g> is already expired!</string>
     <string name="notif_action_used">Used</string>
     <string name="notif_action_dismiss">Remind later</string>
     <string name="notif_action_unknown">Unknown action</string>
