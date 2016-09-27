@@ -36,11 +36,19 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
      * @param listener Implementation for {@link OnItemClickCallback}
      */
     public ReminderAdapter(Context context, OnItemClickCallback listener) {
+        Log.d("Adapter", "constructor");
         mContext = context;
         mOnItemClickCallback = listener;
         // Set to be true so that each list view item would has a unique ID.
         // This will help the adapter to figure out which view items are selected by MultiSelectionState.
         setHasStableIds(true);
+    }
+
+    public void exitActionMode() {
+        if (mActionMode!= null) {
+            Log.d("adapter", "exit action mode");
+            mActionMode.finish();
+        }
     }
 
     /**
@@ -82,8 +90,9 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
                                     ProductContract.ProductEntry.CONTENT_URI,
                                     ProductProvider.PRODUCT_ID_SELECTION,
                                     selectionArgs);
-
-//                            notifyItemRemoved(i);
+                            // no need to call notifyItemRemoved() here because ProductProvider
+                            // will take care of this
+                            //notifyItemRemoved(i);
                         }
                     }
                     mode.finish();
@@ -110,6 +119,7 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
      * @param savedState Previous saved state for this adapter
      */
     public void restoreAdapterState(Bundle savedState) {
+        Log.d("Adapter", "restore");
         mMultiSelectionState.restoreSelectionStats(savedState);
         if (mMultiSelectionState.isSelectable()) {
             mActionMode = ((AppCompatActivity) mContext).startSupportActionMode(mActionModeCallback);
@@ -267,4 +277,6 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
         mCursor = newCursor;
         this.notifyDataSetChanged();
     }
+
+
 }

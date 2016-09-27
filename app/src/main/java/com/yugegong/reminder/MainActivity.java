@@ -16,6 +16,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 
 import com.yugegong.reminder.data.ProductContract;
 
@@ -36,8 +37,18 @@ public class MainActivity extends AppCompatActivity implements ProductListFragme
      * The pager adapter, which provides the pages to the view pager widget.
      */
     private PagerAdapter mPagerAdapter;
+    private ProductListFragment.DataLoadType mPreviousTab;
 
     private TabLayout mTabLayout;
+
+    private TabCallback mTabCallback;
+    interface TabCallback {
+        void exitActionMode();
+    }
+
+    public void setTabCallback(TabCallback callback) {
+        mTabCallback = callback;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +67,25 @@ public class MainActivity extends AppCompatActivity implements ProductListFragme
         mPager.setAdapter(mPagerAdapter);
 
         mTabLayout.setupWithViewPager(mPager);
+        mTabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                if (mTabCallback != null) {
+                    Log.d("Tablayout", tab.toString());
+                    mTabCallback.exitActionMode();
+                }
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+
+            }
+        });
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -147,6 +177,11 @@ public class MainActivity extends AppCompatActivity implements ProductListFragme
             Fragment fragment = new ProductListFragment();
             fragment.setArguments(arg);
             return fragment;
+        }
+
+        @Override
+        public Object instantiateItem(ViewGroup container, int position) {
+            return super.instantiateItem(container, position);
         }
 
         @Override

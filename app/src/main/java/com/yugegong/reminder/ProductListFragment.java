@@ -27,6 +27,7 @@ public class ProductListFragment extends Fragment implements LoaderManager.Loade
 
     private final static String KEY_ADAPTER_BUNDLE = "adapter_bundle";
 
+
     /**
      * Type of product the adapter will load. There are three types of product in total:<br>
      * {@link DataLoadType#DATA_LOAD_FRESH} - Products haven't been used and aren't expired yet.<br>
@@ -80,6 +81,7 @@ public class ProductListFragment extends Fragment implements LoaderManager.Loade
 
 
     public ProductListFragment() {
+        Log.d(TAG, "constructor");
     }
 
     @Override
@@ -113,6 +115,14 @@ public class ProductListFragment extends Fragment implements LoaderManager.Loade
                 ((ProductViewProvider)getActivity()).openProductView(vh.getItemId(), vh.mImageView);
             }
         });
+        MainActivity.TabCallback callback = new MainActivity.TabCallback() {
+            @Override
+            public void exitActionMode() {
+                mReminderAdapter.exitActionMode();
+            }
+        };
+        ((MainActivity) getActivity()).setTabCallback(callback);
+
         mRecyclerView.setAdapter(mReminderAdapter);
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
             mLayoutManger = new LinearLayoutManager(getContext());
