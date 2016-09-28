@@ -93,6 +93,7 @@ public class MainActivity extends AppCompatActivity implements ProductListFragme
         });
 
 //        Utils.setMetrics(getResources());
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
     }
 
     @Override
