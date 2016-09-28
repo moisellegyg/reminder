@@ -35,7 +35,7 @@ public class ProductImageView extends ImageView{
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         int width = getMeasuredWidth();
         int height = width * 3/4;
-        Log.d(TAG, "width = " + width + " height = " + height);
+//        Log.d(TAG, "width = " + width + " height = " + height);
         mTargetH = height;
         mTargetW = width;
         setMeasuredDimension(width, height);
@@ -72,11 +72,11 @@ public class ProductImageView extends ImageView{
         private ProductImageView imageView = null;
         @Override
         protected Bitmap doInBackground(ProductImageView... imageViews) {
-            Log.d("SaveImageTask", "doInBackground");
+//            Log.d("SaveImageTask", "doInBackground");
             imageView = imageViews[0];
             Bitmap bitmap = Utils.decodeBitmapFromFile(imageView.mPath,
                     imageView.mTargetW, imageView.mTargetH);
-            Log.d("SaveImageTask", bitmap.getWidth() + " " + bitmap.getHeight());
+//            Log.d("SaveImageTask", bitmap.getWidth() + " " + bitmap.getHeight());
 
             Utils.saveBitmapFile(imageView.mPath, bitmap);
 
@@ -89,8 +89,8 @@ public class ProductImageView extends ImageView{
                 Log.i(TAG, "bitmap is null, no image will be loaded");
                 return;
             }
-            Log.d("SaveImageTask", "imageView " + imageView.getWidth() + " " + imageView.getHeight()
-                    + " " + bitmap.getWidth() + " " + bitmap.getHeight());
+//            Log.d("SaveImageTask", "imageView " + imageView.getWidth() + " " + imageView.getHeight()
+//                    + " " + bitmap.getWidth() + " " + bitmap.getHeight());
             imageView.setImageBitmap(bitmap);
             imageView.setScaleType(ScaleType.CENTER_CROP);
         }
@@ -107,19 +107,19 @@ public class ProductImageView extends ImageView{
         private ProductImageView imageView = null;
         @Override
         protected Bitmap doInBackground(ProductImageView... imageViews) {
-            Log.d("LoadImageTask", "doInBackground");
+//            Log.d("LoadImageTask", "doInBackground");
             this.imageView = imageViews[0];
             return BitmapFactory.decodeFile(imageView.mPath);
         }
 
         @Override
         protected void onPostExecute(Bitmap bitmap) {
-            Log.d("LoadImageTask", "onPostExecute");
+//            Log.d("LoadImageTask", "onPostExecute");
             if (bitmap == null) {
-                Log.d(TAG, "bitmap is null, no image will be loaded");
+//                Log.d(TAG, "bitmap is null, no image will be loaded");
                 return;
             }
-            Log.d("LoadImageTask", "onPostExecute setImageBitmap " + imageView.mPath);
+            Log.d("onPostExecute", "image path: " + imageView.mPath);
             imageView.setImageBitmap(bitmap);
             imageView.setScaleType(ScaleType.CENTER_CROP);
 

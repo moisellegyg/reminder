@@ -112,7 +112,7 @@ public class AlarmBroadcastReceiver extends BroadcastReceiver {
 
 
     private void addDismissAction(NotificationCompat.Builder builder) {
-        Log.d(this.toString(), "Will show \"dismiss\" action in the Notification");
+        Log.d(LOG_TAG, "Will show \"dismiss\" action in the Notification");
         PendingIntent dismissPendingIntent = createNotificationPendingIntent(
                 mContext,
                 ACTION_PRODUCT_DISMISS,
@@ -130,7 +130,7 @@ public class AlarmBroadcastReceiver extends BroadcastReceiver {
     }
 
     private void addSetUsedAction(NotificationCompat.Builder builder) {
-        Log.d(this.toString(), "Will show \"Used\" action in the Notification");
+        Log.d(LOG_TAG, "Will show \"Used\" action in the Notification");
         PendingIntent setUsedPendingIntent = createNotificationPendingIntent(
                 mContext,
                 ACTION_PRODUCT_SET_USED,

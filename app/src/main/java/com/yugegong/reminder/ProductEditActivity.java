@@ -39,13 +39,6 @@ public class ProductEditActivity extends AppCompatActivity {
         }
     }
 
-
-    @Override
-    public void onDestroy(){
-        Log.d(TAG, "onDestroy");
-        super.onDestroy();
-    }
-
 //    @Override
 //    public boolean onCreateOptionsMenu(Menu menu) {
 //
@@ -67,11 +60,4 @@ public class ProductEditActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
-
-    @Override
-    public void onStop(){
-        Log.d(TAG, "onStop");
-        super.onStop();
-    }
-
 }

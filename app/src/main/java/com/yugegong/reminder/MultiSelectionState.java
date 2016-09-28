@@ -134,8 +134,8 @@ public class MultiSelectionState {
         if (holder == null) return;
         holder.setSelectable(mIsSelectable);
         boolean isSelected = mCheckStats.get(holder.getAdapterPosition(), false);
-        Log.d(LOG_TAG, "refresh " + holder.getAdapterPosition() + " isSelected = " + isSelected + " " + mCheckStats.size());
         holder.setActivated(isSelected);
+        Log.d(LOG_TAG, "refresh " + holder.getAdapterPosition() + " isSelected = " + isSelected);
     }
 
     /**

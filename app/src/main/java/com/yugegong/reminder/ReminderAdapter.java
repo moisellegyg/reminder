@@ -36,7 +36,7 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
      * @param listener Implementation for {@link OnItemClickCallback}
      */
     public ReminderAdapter(Context context, OnItemClickCallback listener) {
-        Log.d("Adapter", "constructor");
+//        Log.d("Adapter", "constructor");
         mContext = context;
         mOnItemClickCallback = listener;
         // Set to be true so that each list view item would has a unique ID.
@@ -71,7 +71,7 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
 
         @Override
         public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-            Log.d(TAG, "onActionItemClicked");
+//            Log.d(TAG, "onActionItemClicked");
             switch (item.getItemId()) {
                 case R.id.action_delete: {
                     int total = getItemCount();
@@ -113,7 +113,7 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
      * @param savedState Previous saved state for this adapter
      */
     public void restoreAdapterState(Bundle savedState) {
-        Log.d("Adapter", "restore");
+        Log.d("ReminderAdapter", "restoreAdapterState");
         mMultiSelectionState.restoreSelectionStats(savedState);
         if (mMultiSelectionState.isSelectable()) {
             mActionMode = ((AppCompatActivity) mContext).startSupportActionMode(mActionModeCallback);
@@ -183,7 +183,7 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
          */
         @Override
         public boolean onLongClick(View v) {
-            Log.d("VH", "onLongClick");
+//            Log.d("VH", "onLongClick");
             int position = getAdapterPosition();
             if (!mMultiSelectionState.isSelectable()) {
                 mActionMode = ((AppCompatActivity) mContext).startSupportActionMode(mActionModeCallback);
@@ -236,8 +236,7 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        Log.d(TAG, "onBindViewHolder " + position + " " + holder.itemView.isActivated() + " " + mMultiSelectionState.isItemSelected(position));
-
+//        Log.d(TAG, "onBindViewHolder " + position + " " + holder.itemView.isActivated() + " " + mMultiSelectionState.isItemSelected(position));
         if (mCursor == null) return;
         if (mCursor.moveToPosition(position)) {
             holder.bindView(mCursor);
@@ -257,7 +256,6 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
     public int getItemCount() {
         if (null == mCursor)
             return 0;
-        Log.d(TAG, "getItemCount = " + mCursor.getCount());
         return mCursor.getCount();
     }
 
@@ -266,7 +264,7 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
      * @param newCursor
      */
     public void swapCursor(Cursor newCursor) {
-        Log.d(TAG, "swap1!");
+        Log.d(TAG, "swapCursor!");
         mCursor = newCursor;
         this.notifyDataSetChanged();
     }
