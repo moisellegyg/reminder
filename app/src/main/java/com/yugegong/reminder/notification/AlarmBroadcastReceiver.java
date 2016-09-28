@@ -96,7 +96,7 @@ public class AlarmBroadcastReceiver extends BroadcastReceiver {
         Log.d(LOG_TAG, contentText);
         final NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext);
         builder.setPriority(Notification.PRIORITY_HIGH)
-                .setSmallIcon(R.drawable.ic_restaurant_black_48dp)
+                .setSmallIcon(R.mipmap.nofication_icon)
                 .setContentTitle(mContext.getString(R.string.notif_title))
                 .setContentText(contentText)
                 .setContentIntent(createEditPendingIntent(mContext, mProductUri))
