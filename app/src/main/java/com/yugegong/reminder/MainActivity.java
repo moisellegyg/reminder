@@ -13,6 +13,7 @@ import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.view.ActionMode;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
@@ -21,7 +22,6 @@ import android.view.ViewGroup;
 import com.yugegong.reminder.data.ProductContract;
 
 public class MainActivity extends AppCompatActivity implements ProductListFragment.ProductViewProvider {
-
     /**
      * The number of pages (wizard steps) to show in this demo.
      */
@@ -37,17 +37,13 @@ public class MainActivity extends AppCompatActivity implements ProductListFragme
      * The pager adapter, which provides the pages to the view pager widget.
      */
     private PagerAdapter mPagerAdapter;
-    private ProductListFragment.DataLoadType mPreviousTab;
-
     private TabLayout mTabLayout;
 
-    private TabCallback mTabCallback;
-    interface TabCallback {
-        void changeTab();
-    }
+    private ActionMode mActionMode = null;
 
-    public void setTabCallback(TabCallback callback) {
-        mTabCallback = callback;
+    public void updateActionMode(ActionMode actionMode) {
+        if (mActionMode != null) mActionMode.finish();
+        mActionMode = actionMode;
     }
 
     @Override
@@ -63,26 +59,25 @@ public class MainActivity extends AppCompatActivity implements ProductListFragme
         // Instantiate a ViewPager and a PagerAdapter.
         mPager = (ViewPager) findViewById(R.id.viewpager);
         mPagerAdapter = new ScreenSlidePagerAdapter(getSupportFragmentManager());
-
         mPager.setAdapter(mPagerAdapter);
-
         mTabLayout.setupWithViewPager(mPager);
-        mTabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+        mPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
-            public void onTabSelected(TabLayout.Tab tab) {
-                if (mTabCallback != null) {
-                    Log.d("Tablayout", tab.toString());
-                    mTabCallback.changeTab();
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                Log.d("Pager", "page " + position);
+                if (mActionMode != null){
+                    Log.d("Pager", "finish action mode");
+                    mActionMode.finish();
                 }
             }
 
             @Override
-            public void onTabUnselected(TabLayout.Tab tab) {
-
-            }
-
-            @Override
-            public void onTabReselected(TabLayout.Tab tab) {
+            public void onPageScrollStateChanged(int state) {
 
             }
         });
@@ -97,7 +92,7 @@ public class MainActivity extends AppCompatActivity implements ProductListFragme
             }
         });
 
-        Utils.setMetrics(getResources());
+//        Utils.setMetrics(getResources());
     }
 
     @Override
@@ -149,7 +144,7 @@ public class MainActivity extends AppCompatActivity implements ProductListFragme
      * A simple pager adapter that represents 5 ScreenSlidePageFragment objects, in
      * sequence.
      */
-    private class ScreenSlidePagerAdapter extends FragmentStatePagerAdapter {
+    public class ScreenSlidePagerAdapter extends FragmentStatePagerAdapter {
 
         ScreenSlidePagerAdapter(FragmentManager fm) {
             super(fm);

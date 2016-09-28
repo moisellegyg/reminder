@@ -44,13 +44,6 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
         setHasStableIds(true);
     }
 
-    public void exitActionMode() {
-        if (mActionMode!= null) {
-            Log.d("adapter", "exit action mode");
-            mActionMode.finish();
-        }
-    }
-
     /**
      * Interface definition for a callback to be invoked when a list view item in
      * {@link ReminderAdapter} is being clicked.
@@ -72,6 +65,7 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
             super.onCreateActionMode(mode, menu);
             // Inflate a menu resource providing context menu items
             mode.getMenuInflater().inflate(R.menu.action_mode_menu, menu);
+            ((MainActivity)mContext).updateActionMode(mode);
             return true;
         }
 
@@ -242,8 +236,7 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        Log.d(TAG, "onBindViewHolder " + position + " " + mCursor.getCount() + " "
-                + holder.itemView.isActivated() + " " + mMultiSelectionState.isItemSelected(position));
+        Log.d(TAG, "onBindViewHolder " + position + " " + holder.itemView.isActivated() + " " + mMultiSelectionState.isItemSelected(position));
 
         if (mCursor == null) return;
         if (mCursor.moveToPosition(position)) {

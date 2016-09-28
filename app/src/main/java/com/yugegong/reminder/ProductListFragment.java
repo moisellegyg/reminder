@@ -115,12 +115,6 @@ public class ProductListFragment extends Fragment implements LoaderManager.Loade
                 ((ProductViewProvider)getActivity()).openProductView(vh.getItemId(), vh.mImageView);
             }
         });
-        ((MainActivity) getActivity()).setTabCallback(new MainActivity.TabCallback() {
-            @Override
-            public void changeTab() {
-                mReminderAdapter.exitActionMode();
-            }
-        });
 
         mRecyclerView.setAdapter(mReminderAdapter);
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
@@ -159,21 +153,6 @@ public class ProductListFragment extends Fragment implements LoaderManager.Loade
         super.onSaveInstanceState(outState);
 
     }
-
-//    @Override
-//    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-//        super.onCreateOptionsMenu(menu, inflater);
-//        inflater.inflate(R.menu.menu_main, menu);
-//    }
-//
-//    @Override
-//    public boolean onOptionsItemSelected(MenuItem item) {
-//        int id = item.getItemId();
-//        if (id == R.id.action_settings) {
-//            return true;
-//        }
-//        return super.onOptionsItemSelected(item);
-//    }
 
     @Override
     public Loader onCreateLoader(int id, Bundle args) {
@@ -231,5 +210,4 @@ public class ProductListFragment extends Fragment implements LoaderManager.Loade
         Log.d(TAG, "onLoaderReset");
         mReminderAdapter.swapCursor(null);
     }
-
 }

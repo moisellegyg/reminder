@@ -41,5 +41,6 @@ public class ModalMultiChoiceCallback implements ActionMode.Callback {
         Log.d(LOG_TAG, "onDestroyActionMode");
         mMultiSelectionState.clearSelections();
         mMultiSelectionState.setSelectable(false);
+//        mode = null;
     }
 }

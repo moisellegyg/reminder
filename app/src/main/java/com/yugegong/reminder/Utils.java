@@ -1,9 +1,7 @@
 package com.yugegong.reminder;
 
-import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.util.DisplayMetrics;
 import android.util.Log;
 
 import java.io.File;
@@ -25,19 +23,18 @@ public class Utils {
     public static final long THREE_DAYS_IN_MILLIS = TimeUnit.MILLISECONDS.convert(3L, TimeUnit.DAYS);
 
     // The gesture threshold expressed in dp
-    private static DisplayMetrics metrics = new DisplayMetrics();
-    public static void setMetrics(Resources resources) {
-        // Get the screen's density scale
-        metrics = resources.getDisplayMetrics();
-    }
-
-    public static int convertDpToPixels(int dp) {
-        return (int) Math.ceil(dp * metrics.density);
-    }
-
-    public static int displayWidthPixels() {
-        return metrics.widthPixels;
-    }
+//    private static DisplayMetrics metrics = new DisplayMetrics();
+//    public static void setMetrics(Resources resources) {
+//        // Get the screen's density scale
+//        metrics = resources.getDisplayMetrics();
+//    }
+//    public static int convertDpToPixels(int dp) {
+//        return (int) Math.ceil(dp * metrics.density);
+//    }
+//
+//    public static int displayWidthPixels() {
+//        return metrics.widthPixels;
+//    }
 
     public static String getDateTimeString(long timestamp) {
         return DateFormat.getDateInstance(DateFormat.MEDIUM).format(new Date(timestamp));
