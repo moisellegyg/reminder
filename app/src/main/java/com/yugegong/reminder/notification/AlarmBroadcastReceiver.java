@@ -6,6 +6,7 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.support.v7.app.NotificationCompat;
 import android.util.Log;
@@ -95,14 +96,24 @@ public class AlarmBroadcastReceiver extends BroadcastReceiver {
                         mContext.getString(R.string.notif_product_expiring_desc, mProductName, days));
 
         Log.d(LOG_TAG, contentText);
+
         final NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext);
         builder.setPriority(Notification.PRIORITY_HIGH)
                 .setSmallIcon(R.mipmap.nofication_icon)
+                .setLargeIcon(BitmapFactory.decodeResource(mContext.getResources(), R.mipmap.launch_icon))
                 .setContentTitle(mContext.getString(R.string.notif_title))
                 .setContentText(contentText)
                 .setContentIntent(createEditPendingIntent(mContext, mProductUri))
                 .setGroup(GROUP_KEY_PRODUCTS);  // Android N and above
         return builder;
+    }
+
+    private static PendingIntent createEditPendingIntent(Context context, Uri productUri) {
+        Intent intent = new Intent(context, ProductEditActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        intent.putExtra(ProductEditFragment.INTENT_EXTRA_DISABLE_DELETE_MENU_OPTION, false);
+        intent.setData(productUri);
+        return PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
     private void createNotification(NotificationCompat.Builder builder) {
@@ -147,22 +158,18 @@ public class AlarmBroadcastReceiver extends BroadcastReceiver {
         builder.addAction(action);
     }
 
-    private static PendingIntent createEditPendingIntent(Context context, Uri productUri) {
-        Intent intent = new Intent(context, ProductEditActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        intent.putExtra(ProductEditFragment.INTENT_EXTRA_DISABLE_DELETE_MENU_OPTION, false);
-        intent.setData(productUri);
-        return PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-    }
 
     private static PendingIntent createNotificationPendingIntent(Context context, String action, int notificationId, String productName, Uri productUri, long expiredTimestamp) {
-        final Intent intent = new Intent(action, null,
-                context, NotificationBroadcastReceiver.class);
-        Log.d("createNotification", "notificationId = " + notificationId);
+        Log.d("createNotification", "notificationId = " + notificationId + " " + productName);
+        final Intent intent = new Intent(action, null, context, NotificationBroadcastReceiver.class);
+        // call setData() here because every intent with a different product Uri is a unique one,
+        // PendingIntent.getBroadcast will create PendingIntent if the intent is different.
+        // http://stackoverflow.com/questions/3009059/android-pending-intent-notification-problem
+        intent.setData(productUri);
         intent.putExtra(KEY_NOTIFICATION_ID, notificationId);
         intent.putExtra(KEY_PRODUCT_NAME, productName);
         intent.putExtra(KEY_EXPIRED_TIME, expiredTimestamp);
-        intent.putExtra(ProductEditFragment.PRODUCT_URI, productUri);
+//        intent.putExtra(ProductEditFragment.PRODUCT_URI, productUri);
         return PendingIntent.getBroadcast(context, 0, intent, 0);
     }
 

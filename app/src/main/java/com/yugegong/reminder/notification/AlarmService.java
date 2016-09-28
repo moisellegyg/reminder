@@ -28,6 +28,7 @@ public class AlarmService {
      */
     public AlarmService(Context context, Uri productUri, String productName, long expiredTimestamp) {
         Log.d(LOG_TAG, productUri.toString());
+        if (context == null) return;
         mAlarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(context, AlarmBroadcastReceiver.class);
         intent.putExtra(ProductEditFragment.PRODUCT_URI, productUri);

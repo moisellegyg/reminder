@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
 
-import com.yugegong.reminder.ProductEditFragment;
 import com.yugegong.reminder.Utils;
 import com.yugegong.reminder.data.ProductContract;
 
@@ -45,14 +44,15 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         final String action = intent.getAction();
-        Log.i(this.toString(), "Broadcast from Notification: " + action);
+        Log.i(LOG_TAG, "Broadcast from Notification: " + action);
 
         mContext = context;
+        Uri productUri = intent.getData();
 //        if (handler != null) handler = new ProductQueryHandler(context.getContentResolver());
         int notificationId = intent.getIntExtra(AlarmBroadcastReceiver.KEY_NOTIFICATION_ID, -1);
         String productName = intent.getStringExtra(AlarmBroadcastReceiver.KEY_PRODUCT_NAME);
         long expiredTime = intent.getLongExtra(AlarmBroadcastReceiver.KEY_EXPIRED_TIME, -1L);
-        Uri productUri = intent.getParcelableExtra(ProductEditFragment.PRODUCT_URI);
+//        Uri productUri = intent.getParcelableExtra(ProductEditFragment.PRODUCT_URI);
         Log.d(LOG_TAG, notificationId + " " + productName);
 
         switch (action) {
