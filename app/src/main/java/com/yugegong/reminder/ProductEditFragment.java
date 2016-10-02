@@ -35,6 +35,7 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.yugegong.reminder.data.ProductContract;
+import com.yugegong.reminder.data.ProductQueryHandler;
 import com.yugegong.reminder.notification.AlarmService;
 
 import java.io.File;
@@ -98,7 +99,6 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
     public static final int COL_PRODUCT_CREATE_DATE = 4;
     public static final int COL_PRODUCT_EXPIRE_DATE = 5;
     public static final int COL_PRODUCT_IS_USED = 6;
-
 
     public static class DatePickEditText extends TextInputEditText implements DatePickerDialog.OnDateSetListener {
 
@@ -454,6 +454,7 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
         private Uri mUpdateUri;
         private String mProductName;
         private Long mExpireTimestamp;
+        private int mIsUsed;
         EditProductTask(Uri productUri) {
             mUpdateUri = productUri;
         }
@@ -467,15 +468,14 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
             Calendar c = Calendar.getInstance();
             c.setTimeInMillis(mExpireTimestamp);
             Log.d("EditProductTask", "expiredTime = " + c.getTime().toString());
-
             String imgPath = params[3];
-            String isUsed = params[4];
+            mIsUsed = Integer.parseInt(params[4]);
 
             ContentValues contentValues = new ContentValues();
             contentValues.put(ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_NAME, mProductName);
             contentValues.put(ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_CREATE_DATE, createTimestamp);
             contentValues.put(ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_EXPIRE_DATE, mExpireTimestamp);
-            contentValues.put(ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_IS_USED, isUsed);
+            contentValues.put(ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_IS_USED, mIsUsed);
 
             if (imgPath != null && imgPath.length() != 0) {
                 contentValues.put(ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_IMG_PATH, imgPath);
@@ -495,6 +495,7 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
 
         @Override
         protected void onPostExecute(Uri productUri) {
+            if (mIsUsed == 1) return;
             long currentTimeInMillis = Utils.getCurrentTimeInMillis();
             long notifyAtMillis = mExpireTimestamp - Utils.THREE_DAYS_IN_MILLIS;
             long triggerAtMillis = notifyAtMillis < currentTimeInMillis ? currentTimeInMillis : notifyAtMillis;

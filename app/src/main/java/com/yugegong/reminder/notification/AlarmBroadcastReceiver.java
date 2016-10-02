@@ -17,6 +17,7 @@ import com.yugegong.reminder.R;
 import com.yugegong.reminder.Utils;
 import com.yugegong.reminder.data.ProductContract;
 
+import static com.yugegong.reminder.notification.NotificationBroadcastReceiver.ACTION_NOTIFICATION_DELETED;
 import static com.yugegong.reminder.notification.NotificationBroadcastReceiver.ACTION_PRODUCT_DISMISS;
 import static com.yugegong.reminder.notification.NotificationBroadcastReceiver.ACTION_PRODUCT_SET_USED;
 
@@ -104,6 +105,7 @@ public class AlarmBroadcastReceiver extends BroadcastReceiver {
                 .setContentTitle(mContext.getString(R.string.notif_title))
                 .setContentText(contentText)
                 .setContentIntent(createEditPendingIntent(mContext, mProductUri))
+                .setAutoCancel(true)
                 .setGroup(GROUP_KEY_PRODUCTS);  // Android N and above
         return builder;
     }
@@ -120,6 +122,15 @@ public class AlarmBroadcastReceiver extends BroadcastReceiver {
         // The order of calling these two methods below matters for the UI.
         addSetUsedAction(builder);
         addDismissAction(builder);
+        setDeleteIntent(builder);
+    }
+
+    private void setDeleteIntent(NotificationCompat.Builder builder) {
+        PendingIntent deletePendingIntent = createNotificationPendingIntent(mContext,
+                ACTION_NOTIFICATION_DELETED,
+                mNotificationId,
+                mProductName, mProductUri, mExpiredTimestamp);
+        builder.setDeleteIntent(deletePendingIntent);
     }
 
 
@@ -138,7 +149,6 @@ public class AlarmBroadcastReceiver extends BroadcastReceiver {
                 dismissPendingIntent)
                 .build();
         builder.addAction(action);
-
     }
 
     private void addSetUsedAction(NotificationCompat.Builder builder) {

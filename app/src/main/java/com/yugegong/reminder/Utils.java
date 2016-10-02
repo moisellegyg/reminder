@@ -17,8 +17,8 @@ import java.util.concurrent.TimeUnit;
  */
 public class Utils {
 
-    public static final long THREE_HOURS_IN_MILLIS = TimeUnit.MICROSECONDS.convert(3L, TimeUnit.HOURS);
-    public static final long ONE_SEC_IN_MILLIS = TimeUnit.MICROSECONDS.convert(1L, TimeUnit.SECONDS);
+    public static final long THREE_HOURS_IN_MILLIS = TimeUnit.MILLISECONDS.convert(3L, TimeUnit.HOURS);
+    public static final long TEN_SEC_IN_MILLIS = TimeUnit.MILLISECONDS.convert(10L, TimeUnit.SECONDS);
     public static final long ONE_DAYS_IN_MILLIS = TimeUnit.MILLISECONDS.convert(1L, TimeUnit.DAYS);
     public static final long THREE_DAYS_IN_MILLIS = TimeUnit.MILLISECONDS.convert(3L, TimeUnit.DAYS);
 

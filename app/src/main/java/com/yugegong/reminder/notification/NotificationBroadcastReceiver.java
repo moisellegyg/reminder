@@ -6,10 +6,14 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Bundle;
 import android.util.Log;
 
+import com.yugegong.reminder.ProductListFragment;
 import com.yugegong.reminder.Utils;
+import com.yugegong.reminder.data.Product;
 import com.yugegong.reminder.data.ProductContract;
+import com.yugegong.reminder.data.ProductQueryHandler;
 
 /**
  * Receive the broadcast from the notification created in {@link AlarmBroadcastReceiver} when user
@@ -31,9 +35,12 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
     public static final String ACTION_PRODUCT_SET_USED =
             "com.yugegong.reminder.ACTION_PRODUCT_SET_USED";
 
-//    public static ProductQueryHandler handler;
+    public static final String ACTION_NOTIFICATION_DELETED =
+            "com.yugegong.reminder.ACTION_NOTIFICATION_DELETED";
 
     private Context mContext;
+
+    private ProductQueryHandler mQueryHandler;
 
     /**
      * This method is called when {@code NotificationBroadcastReceiver} is receiving an intent
@@ -48,11 +55,10 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
 
         mContext = context;
         Uri productUri = intent.getData();
-//        if (handler != null) handler = new ProductQueryHandler(context.getContentResolver());
+        mQueryHandler = new ProductQueryHandler(context, context.getContentResolver());
         int notificationId = intent.getIntExtra(AlarmBroadcastReceiver.KEY_NOTIFICATION_ID, -1);
         String productName = intent.getStringExtra(AlarmBroadcastReceiver.KEY_PRODUCT_NAME);
         long expiredTime = intent.getLongExtra(AlarmBroadcastReceiver.KEY_EXPIRED_TIME, -1L);
-//        Uri productUri = intent.getParcelableExtra(ProductEditFragment.PRODUCT_URI);
         Log.d(LOG_TAG, notificationId + " " + productName);
 
         switch (action) {
@@ -63,6 +69,10 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
             case ACTION_PRODUCT_DISMISS: {
                 setNextAlarm(context, productUri, productName, expiredTime);
                 cancelNotification(notificationId);
+                break;
+            }
+            case ACTION_NOTIFICATION_DELETED: {
+                setNextAlarm(context, productUri, productName, expiredTime);
                 break;
             }
             default:
@@ -77,13 +87,21 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
      * @param productName Name for the product
      */
     private void setNextAlarm(Context context, Uri productUri, String productName, long expiredTime) {
-        AlarmService service = new AlarmService(context, productUri, productName, expiredTime);
-        //Midnight tomorrow time in millisecond
-        long tomorrowTime = Utils.getTodayTimeInMillis() + Utils.ONE_DAYS_IN_MILLIS;
-        //Three hours later from now on in millisecond
-        long threeHrsLater = Utils.getCurrentTimeInMillis() + Utils.THREE_HOURS_IN_MILLIS;
-        long triggerAtMillis = expiredTime > tomorrowTime ? tomorrowTime : threeHrsLater;
-        service.setAlarm(triggerAtMillis);
+
+        Bundle bundle =  new Bundle();
+        bundle.putParcelable(ProductQueryHandler.KEY_PRODUCT_URI, productUri);
+        bundle.putString(ProductQueryHandler.KEY_PRODUCT_NAME, productName);
+        bundle.putLong(ProductQueryHandler.KEY_EXPIRED_TIME,expiredTime);
+
+        String[] projection = {ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_IS_USED};
+        mQueryHandler.startQuery(1,
+                bundle,
+                productUri,
+                projection,
+                null, null, null);
+
+//        AlarmService service = new AlarmService(context, productUri, productName, expiredTime);
+//        service.setAlarm(triggerAtMillis);
     }
 
     /**
@@ -95,8 +113,8 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
         Log.d(LOG_TAG, "setProductIsUsed");
         ContentValues cv = new ContentValues();
         cv.put(ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_IS_USED, isUsed);
-//        handler.startUpdate(1, null, productUri, cv, null, null);
-        mContext.getContentResolver().update(productUri, cv, null, null);
+        mQueryHandler.startUpdate(1, null, productUri, cv, null, null);
+//        mContext.getContentResolver().update(productUri, cv, null, null);
     }
 
     /**
