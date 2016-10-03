@@ -35,7 +35,7 @@
     <string name="hint_created_date">Created date</string>
     <string name="hint_expired_date">Expired date</string>
 
-    <string name="expires_on">EXPIRES ON</string>
+    <string name="expires_on">Expires on</string>
     <string name="detail_product_used">Already used</string>
 
 </resources>

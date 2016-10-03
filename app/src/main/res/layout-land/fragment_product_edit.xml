@@ -46,7 +46,7 @@
                 android:fontFamily="sans-serif"
                 android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                 android:imeOptions="actionNext"
-                android:inputType="text"
+                android:inputType="text|textCapSentences"
                 android:id="@+id/product_name"/>
         </android.support.design.widget.TextInputLayout>
 
