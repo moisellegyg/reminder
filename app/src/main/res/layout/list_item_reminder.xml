@@ -19,8 +19,7 @@
         android:background="@drawable/list_stats_drawable">
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="3">
+            android:layout_height="wrap_content">
             <com.yugegong.reminder.ProductImageView
                 android:id="@+id/product_image"
                 android:layout_width="match_parent"
@@ -33,7 +32,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:padding="4dp"
-                android:layout_alignParentBottom="true"
+                android:layout_alignBottom="@id/product_image"
                 android:background="@color/transparent_colorPrimary"
                 android:textColor="@color/cardview_title_text_color"
                 android:gravity="center"
@@ -42,31 +41,30 @@
         </RelativeLayout>
 
         <android.support.v7.widget.GridLayout
-            android:layout_weight="1"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
+            android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             app:columnCount="2">
 
-            <TextView android:id="@+id/item_create_title"
-                style="@style/DateTextStyle"
-                app:layout_columnWeight="1"
-                app:layout_rowWeight="1"
-                app:layout_gravity="fill"
-                android:text="CREATED DATE"
-                android:textColor="@color/cardview_content_text_color"/>
-            <TextView android:id="@+id/item_create_date"
-                style="@style/DateTextStyle"
-                app:layout_columnWeight="1"
-                app:layout_gravity="fill"
-                android:text="2016-08-02"
-                android:textColor="@color/cardview_content_text_color"/>
+            <!--<TextView android:id="@+id/item_create_title"-->
+                <!--style="@style/DateTextStyle"-->
+                <!--app:layout_columnWeight="1"-->
+                <!--app:layout_rowWeight="1"-->
+                <!--app:layout_gravity="fill"-->
+                <!--android:text="CREATED DATE"-->
+                <!--android:textColor="@color/cardview_content_text_color"/>-->
+            <!--<TextView android:id="@+id/item_create_date"-->
+                <!--style="@style/DateTextStyle"-->
+                <!--app:layout_columnWeight="1"-->
+                <!--app:layout_gravity="fill"-->
+                <!--android:text="2016-08-02"-->
+                <!--android:textColor="@color/cardview_content_text_color"/>-->
             <TextView android:id="@+id/item_expire_title"
                 style="@style/DateTextStyle"
                 app:layout_columnWeight="1"
                 app:layout_rowWeight="1"
                 app:layout_gravity="fill"
-                android:text="EXPIRED DATE"
+                android:text="@string/expires_on"
                 android:textColor="@color/cardview_content_text_color"/>
             <TextView android:id="@+id/item_expire_date"
                 style="@style/DateTextStyle"

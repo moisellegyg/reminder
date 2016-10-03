@@ -35,4 +35,6 @@
     <string name="hint_created_date">Created date</string>
     <string name="hint_expired_date">Expired date</string>
 
+    <string name="expires_on">EXPIRES ON</string>
+
 </resources>

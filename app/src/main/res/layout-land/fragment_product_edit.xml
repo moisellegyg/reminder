@@ -7,7 +7,7 @@
     android:id="@+id/product_edit_root"
     android:focusableInTouchMode="true"
     android:orientation="horizontal"
-    android:layout_margin="32dp"
+    android:layout_margin="16dp"
     android:baselineAligned="false">
     <FrameLayout
         android:id="@+id/product_image_frame"
@@ -45,6 +45,8 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif"
                 android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                android:imeOptions="actionNext"
+                android:inputType="text"
                 android:id="@+id/product_name"/>
         </android.support.design.widget.TextInputLayout>
 
@@ -55,6 +57,8 @@
             <view class="com.yugegong.reminder.ProductEditFragment$DatePickEditText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:enabled="false"
+                android:focusable="false"
                 android:fontFamily="sans-serif"
                 android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                 android:inputType="textNoSuggestions"

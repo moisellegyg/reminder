@@ -167,7 +167,7 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
         View rootView = inflater.inflate(R.layout.fragment_product_edit, container, false);
         bindViews(rootView);
         setupCustomActionBar();
-        setOnClickListeners(mImageFrameLayout, mFromEditTxt, mToEditTxt, mCancelBtn, mSaveBtn);
+        setOnClickListeners(mImageFrameLayout, mCancelBtn, mSaveBtn);
         return rootView;
     }
 
@@ -197,11 +197,22 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
         mImageFrameLayout = (FrameLayout) rootView.findViewById(R.id.product_image_frame);
         mImageView = (ProductImageView) rootView.findViewById(R.id.product_image);
         mNameEditTxt = (TextInputEditText) rootView.findViewById(R.id.product_name);
+        mNameEditTxt.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean hasFocus) {
+                if (!hasFocus) {
+                    Log.d(TAG, "NameEditTxt has no focus");
+                    InputMethodManager imm = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(view.getApplicationWindowToken(), 0);
+                }
+            }
+        });
         mUsedCheckBox = (CheckBox) rootView.findViewById(R.id.checkbox_is_used);
         mFromEditTxt = (DatePickEditText) rootView.findViewById(R.id.created_time);
-        mFromEditTxt.setInputType(InputType.TYPE_NULL);
+//        mFromEditTxt.setInputType(InputType.TYPE_NULL);
         mToEditTxt = (DatePickEditText) rootView.findViewById(R.id.expired_time);
         mToEditTxt.setInputType(InputType.TYPE_NULL);
+        setOnTouchListeners(mToEditTxt);
     }
 
     private void setupCustomActionBar() {
@@ -224,7 +235,12 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
 
     private void bindDataToViews() {
         if (mName != null && mName.length() > 0) mNameEditTxt.setText(mName);
-        if (mFromEditTxt.timestamp != -1) mFromEditTxt.setText(Utils.getDateTimeString(mFromEditTxt.timestamp));
+        if (mFromEditTxt.timestamp != -1) {
+            mFromEditTxt.setText(Utils.getDateTimeString(mFromEditTxt.timestamp));
+        } else {
+            mFromEditTxt.timestamp = Utils.getTodayTimeInMillis();
+            mFromEditTxt.setText(Utils.getDateTimeString(mFromEditTxt.timestamp));
+        }
         if (mToEditTxt.timestamp != -1) mToEditTxt.setText(Utils.getDateTimeString(mToEditTxt.timestamp));
         if (mRetrievedImgPath != null) {
             mImageView.loadImageFromFile(mRetrievedImgPath);
@@ -369,10 +385,8 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
 
     @Override
     public void onClick(View v) {
-        hideSoftInput();
-        if (v == mFromEditTxt || v == mToEditTxt) {
-            setDate(v);
-        } else if (v == mImageFrameLayout) {
+        Log.d(TAG, "onClick");
+        if (v == mImageFrameLayout) {
             dispatchTakePictureIntent();
         } else if (v == mCancelBtn) {
             cancelEdit();
@@ -383,11 +397,18 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
-        mToEditTxt.clearFocus();
-        mFromEditTxt.clearFocus();
-        mNameEditTxt.clearFocus();
-        hideSoftInput();
-        return false;
+        Log.d(TAG, "onTouch " + event.toString());
+        if (v == mFromEditTxt || v == mToEditTxt) {
+            if (event.getAction() == MotionEvent.ACTION_UP) {
+                setDate(v);
+            }
+        } else {
+            Log.d(TAG, "onTouch else where");
+            mToEditTxt.clearFocus();
+            mFromEditTxt.clearFocus();
+            mNameEditTxt.clearFocus();
+        }
+        return true;
     }
 
     private void cancelEdit() {
@@ -421,7 +442,6 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
 
         int isUsed = mUsedCheckBox.isChecked() ? 1 : 0;
         saveProduct(mProductUri, mName, mFromEditTxt.timestamp, mToEditTxt.timestamp, currentImgPath, isUsed);
-//        scheduleNotification(mProductUri, mName, mToEditTxt.timestamp);
         startMainActivity();
     }
 
@@ -436,13 +456,19 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
         }
     }
 
-    private void hideSoftInput() {
-        InputMethodManager imm = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-        View view = getActivity().getCurrentFocus();
-        if (view != null) {
-            imm.hideSoftInputFromWindow(view.getApplicationWindowToken(), 0);
+    private void setOnTouchListeners(View... views) {
+        for (View view : views) {
+            view.setOnTouchListener(this);
         }
     }
+
+//    private void hideSoftInput() {
+//        InputMethodManager imm = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+//        View view = getActivity().getCurrentFocus();
+//        if (view != null) {
+//            imm.hideSoftInputFromWindow(view.getApplicationWindowToken(), 0);
+//        }
+//    }
 
     private void startMainActivity() {
         Intent intent = new Intent(getContext(), MainActivity.class);
@@ -521,9 +547,7 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         Log.d(TAG, "onCreateOptionsMenu");
-
         inflater.inflate(R.menu.menu_edit, menu);
-
     }
 
     @Override
@@ -536,9 +560,12 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        Log.d(TAG, "onOptionsItemSelected");
         switch (item.getItemId()) {
-            case R.id.action_delete:
+            case R.id.action_delete: {
+                startMainActivity();
                 return true;
+            }
         }
         return false;
     }

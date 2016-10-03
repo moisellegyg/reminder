@@ -130,14 +130,14 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
 
         final ProductImageView mImageView;
         final TextView mNameTextView;
-        final TextView mCreateDateTextView;
+//        final TextView mCreateDateTextView;
         final TextView mExpireDateTextView;
 
         public ViewHolder(View itemView){
             super(itemView, mMultiSelectionState);
             mImageView = (ProductImageView) itemView.findViewById(R.id.product_image);
             mNameTextView = (TextView) itemView.findViewById(R.id.product_name);
-            mCreateDateTextView = (TextView) itemView.findViewById(R.id.item_create_date);
+//            mCreateDateTextView = (TextView) itemView.findViewById(R.id.item_create_date);
             mExpireDateTextView = (TextView) itemView.findViewById(R.id.item_expire_date);
             itemView.setOnClickListener(this);
             itemView.setOnLongClickListener(this);
@@ -151,9 +151,9 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
             String name = cursor.getString(ProductListFragment.COL_PRODUCT_NAME);
             Log.d(TAG, name);
             mNameTextView.setText(name);
-            mCreateDateTextView.setText(
-                    Utils.getDateTimeString(cursor.getLong(ProductListFragment.COL_PRODUCT_CREATE_DATE))
-            );
+//            mCreateDateTextView.setText(
+//                    Utils.getDateTimeString(cursor.getLong(ProductListFragment.COL_PRODUCT_CREATE_DATE))
+//            );
             mExpireDateTextView.setText(
                     Utils.getDateTimeString(cursor.getLong(ProductListFragment.COL_PRODUCT_EXPIRE_DATE))
             );
@@ -261,7 +261,7 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
 
     /**
      * Call this method when data for this adapter needs to be refreshed.
-     * @param newCursor
+     * @param newCursor new data to feed in
      */
     public void swapCursor(Cursor newCursor) {
         Log.d(TAG, "swapCursor!");
