@@ -8,7 +8,7 @@ android {
         applicationId "com.yugegong.reminder"
         minSdkVersion 21
         targetSdkVersion 23
-        versionCode 3
+        versionCode 4
         versionName "1.1"
     }
     buildTypes {
