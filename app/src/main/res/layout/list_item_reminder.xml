@@ -24,8 +24,9 @@
                 android:id="@+id/product_image"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:scaleType="centerCrop"
-                android:src="@drawable/burger"
+                android:scaleType="fitCenter"
+                android:background="@color/colorBackground"
+                android:src="@drawable/tomato_placeholder"
                 android:transitionName="@string/transition_product_img"/>
             <TextView
                 android:id="@+id/product_name"

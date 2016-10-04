@@ -132,13 +132,18 @@ public class MainActivity extends AppCompatActivity implements ProductListFragme
         editIntent.putExtra(ProductEditFragment.INTENT_EXTRA_DISABLE_DELETE_MENU_OPTION, false);
         editIntent.setData(productUri);
 
-        String transitionName = getString(R.string.transition_product_img);
-        ActivityOptionsCompat options =
-                ActivityOptionsCompat.makeSceneTransitionAnimation(this,
-                        imageView,   // The view which starts the transition
-                        transitionName    // The transitionName of the view we are transitioning to
-                );
-        ActivityCompat.startActivity(this, editIntent, options.toBundle());
+        if (imageView.getPath() == null){
+            ActivityCompat.startActivity(this, editIntent, null);
+        } else {
+            String transitionName = getString(R.string.transition_product_img);
+            ActivityOptionsCompat options =
+                    ActivityOptionsCompat.makeSceneTransitionAnimation(this,
+                            imageView,   // The view which starts the transition
+                            transitionName    // The transitionName of the view we are transitioning to
+                    );
+            ActivityCompat.startActivity(this, editIntent, options.toBundle());
+        }
+
     }
 
     /**
