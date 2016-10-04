@@ -200,8 +200,8 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
         mNameEditTxt.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View view, boolean hasFocus) {
+                // When mNameEditText loses focus, IME will be hidden
                 if (!hasFocus) {
-                    Log.d(TAG, "NameEditTxt has no focus");
                     InputMethodManager imm = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
                     imm.hideSoftInputFromWindow(view.getApplicationWindowToken(), 0);
                 }
@@ -209,10 +209,9 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
         });
         mUsedCheckBox = (CheckBox) rootView.findViewById(R.id.checkbox_is_used);
         mFromEditTxt = (DatePickEditText) rootView.findViewById(R.id.created_time);
-//        mFromEditTxt.setInputType(InputType.TYPE_NULL);
         mToEditTxt = (DatePickEditText) rootView.findViewById(R.id.expired_time);
         mToEditTxt.setInputType(InputType.TYPE_NULL);
-        setOnTouchListeners(mToEditTxt);
+        mToEditTxt.setOnTouchListener(this);
     }
 
     private void setupCustomActionBar() {
@@ -260,8 +259,8 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
         mLastUri = savedInstanceState.getParcelable(KEY_LAST_IMG_URI);
         mPreInsertUri = savedInstanceState.getParcelable(KEY_PREINSERT_URI);
 
-        if (mLastUri != null) Log.d(TAG, "restoreInstanceState mLastUri = " + mLastUri.toString());
-        if (mPreInsertUri != null) Log.d(TAG, "restoreInstanceState mPreInsertUri = " + mPreInsertUri.toString());
+//        if (mLastUri != null) Log.d(TAG, "restoreInstanceState mLastUri = " + mLastUri.toString());
+//        if (mPreInsertUri != null) Log.d(TAG, "restoreInstanceState mPreInsertUri = " + mPreInsertUri.toString());
     }
 
     private void getProductFromUri(Uri uri) {
@@ -420,7 +419,6 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
     }
 
     private void saveEdit() {
-
         mName = mNameEditTxt.getText().toString();
         if (mName.length() == 0) {
             Toast.makeText(getContext(), "Product name is empty", Toast.LENGTH_SHORT).show();
@@ -455,20 +453,6 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
             view.setOnClickListener(this);
         }
     }
-
-    private void setOnTouchListeners(View... views) {
-        for (View view : views) {
-            view.setOnTouchListener(this);
-        }
-    }
-
-//    private void hideSoftInput() {
-//        InputMethodManager imm = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-//        View view = getActivity().getCurrentFocus();
-//        if (view != null) {
-//            imm.hideSoftInputFromWindow(view.getApplicationWindowToken(), 0);
-//        }
-//    }
 
     private void startMainActivity() {
         Intent intent = new Intent(getContext(), MainActivity.class);
