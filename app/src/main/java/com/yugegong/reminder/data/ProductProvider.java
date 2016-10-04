@@ -99,6 +99,7 @@ public class ProductProvider extends ContentProvider {
 
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
+        Log.d(TAG, "delete " + uri.toString());
         int deletedRows = 0;
         mDb = mProductDbHelper.getWritableDatabase();
         switch (mUriMatcher.match(uri)) {
@@ -106,12 +107,13 @@ public class ProductProvider extends ContentProvider {
                 deletedRows = mDb.delete(ProductContract.ProductEntry.TABLE_NAME, selection, selectionArgs);
                 break;
             case CODE_PRODUCT_ITEM:
-                deletedRows = 0;
+                deletedRows = deleteProductById(uri);
                 break;
             default:
                 deletedRows = 0;
         }
         if (deletedRows != 0) getContext().getContentResolver().notifyChange(uri, null);
+        Log.d(TAG, "updatedRows = "  + deletedRows);
         return deletedRows;
     }
 
@@ -135,7 +137,6 @@ public class ProductProvider extends ContentProvider {
     }
 
     private Cursor getProductById(Uri uri, String[] projection){
-        mDb = mProductDbHelper.getReadableDatabase();
         long _id = ProductContract.ProductEntry.getIdFromUri(uri);
         String selection = "_id = ? ";
         String[] selectionArgs = {Long.toString(_id)};
@@ -151,13 +152,19 @@ public class ProductProvider extends ContentProvider {
     }
 
     private int updateProductById(Uri uri, ContentValues values){
-        mDb = mProductDbHelper.getReadableDatabase();
         long _id = ProductContract.ProductEntry.getIdFromUri(uri);
-        String selection = "_id = ? ";
-        String[] selectionArgs = {Long.toString(_id)};
+        String whereClause = "_id = ? ";
+        String[] whereArgs = {Long.toString(_id)};
         return mDb.update(ProductContract.ProductEntry.TABLE_NAME,
                 values,
-                selection,
-                selectionArgs);
+                whereClause,
+                whereArgs);
+    }
+
+    private int deleteProductById(Uri uri) {
+        long _id = ProductContract.ProductEntry.getIdFromUri(uri);
+        String whereClause = "_id = ? ";
+        String[] whereArgs = {Long.toString(_id)};
+        return mDb.delete(ProductContract.ProductEntry.TABLE_NAME, whereClause, whereArgs);
     }
 }

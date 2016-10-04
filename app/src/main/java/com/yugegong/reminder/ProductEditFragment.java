@@ -258,11 +258,14 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
         mRetrievedImgPath = savedInstanceState.getString(KEY_RETRIEVED_IMG_PATH);
         mLastUri = savedInstanceState.getParcelable(KEY_LAST_IMG_URI);
         mPreInsertUri = savedInstanceState.getParcelable(KEY_PREINSERT_URI);
-
 //        if (mLastUri != null) Log.d(TAG, "restoreInstanceState mLastUri = " + mLastUri.toString());
 //        if (mPreInsertUri != null) Log.d(TAG, "restoreInstanceState mPreInsertUri = " + mPreInsertUri.toString());
     }
 
+    /**
+     * Given product URI, using ContentResolver to query the specified product from database.
+     * @param uri Product URI
+     */
     private void getProductFromUri(Uri uri) {
         Cursor cursor = getContext().getContentResolver().query(uri, PRODUCT_COLUMNS, null, null, null);
         if (cursor != null && cursor.moveToFirst()) {
@@ -329,6 +332,9 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
         mPreInsertUri = null;
     }
 
+    /**
+     * Start a new intent of taking picture
+     */
     private void dispatchTakePictureIntent() {
         Intent takePhotoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePhotoIntent.resolveActivity(getActivity().getPackageManager()) != null) {
@@ -347,6 +353,11 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
         }
     }
 
+    /**
+     *
+     * @return A empty .jpg file named by its creation time in "JPEG_yyyyMMdd_HHmmss.jpg" format.
+     * @throws IOException
+     */
     @Nullable
     private File createImageFile() throws IOException {
         String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
@@ -367,16 +378,21 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
         return new File(path);
     }
 
-    private void setDate(View v) {
+    /**
+     * Launch a {@link DatePickerDialog} and
+     * @param listener
+     */
+    private void setDate(DatePickerDialog.OnDateSetListener listener) {
         Calendar rightNow = Calendar.getInstance();
-        DatePickerDialog dialog = new DatePickerDialog(getContext(),
-                (DatePickEditText)v,
+        DatePickerDialog dialog = new DatePickerDialog(
+                getContext(),
+                listener,
                 rightNow.get(Calendar.YEAR),
                 rightNow.get(Calendar.MONTH),
                 rightNow.get(Calendar.DAY_OF_MONTH));
 
         // Set limitation for a calendar when the other is set
-        if (v == mToEditTxt && mFromEditTxt.timestamp != -1)
+        if (listener == mToEditTxt && mFromEditTxt.timestamp != -1)
             dialog.getDatePicker().setMinDate(mFromEditTxt.timestamp);
 
         dialog.show();
@@ -384,7 +400,6 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
 
     @Override
     public void onClick(View v) {
-        Log.d(TAG, "onClick");
         if (v == mImageFrameLayout) {
             dispatchTakePictureIntent();
         } else if (v == mCancelBtn) {
@@ -399,10 +414,9 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
         Log.d(TAG, "onTouch " + event.toString());
         if (v == mFromEditTxt || v == mToEditTxt) {
             if (event.getAction() == MotionEvent.ACTION_UP) {
-                setDate(v);
+                setDate((DatePickerDialog.OnDateSetListener) v);
             }
         } else {
-            Log.d(TAG, "onTouch else where");
             mToEditTxt.clearFocus();
             mFromEditTxt.clearFocus();
             mNameEditTxt.clearFocus();
@@ -523,22 +537,17 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
     }
 
     @Override
-    public void onDestroy(){
-        Log.d(TAG, "onDestroy");
-        super.onDestroy();
-    }
-
-    @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        Log.d(TAG, "onCreateOptionsMenu");
+//        Log.d(TAG, "onCreateOptionsMenu");
         inflater.inflate(R.menu.menu_edit, menu);
     }
 
     @Override
     public void onPrepareOptionsMenu(Menu menu) {
-        Log.d(TAG, "onPrepareOptionsMenu");
+//        Log.d(TAG, "onPrepareOptionsMenu");
         MenuItem deleteMenu = menu.findItem(R.id.action_delete);
-        boolean disableDeleteMenuOption = getActivity().getIntent().getBooleanExtra(INTENT_EXTRA_DISABLE_DELETE_MENU_OPTION, false);
+        boolean disableDeleteMenuOption = getActivity()
+                .getIntent().getBooleanExtra(INTENT_EXTRA_DISABLE_DELETE_MENU_OPTION, false);
         deleteMenu.setVisible(!disableDeleteMenuOption);
     }
 
@@ -547,17 +556,15 @@ public class ProductEditFragment extends Fragment implements View.OnClickListene
         Log.d(TAG, "onOptionsItemSelected");
         switch (item.getItemId()) {
             case R.id.action_delete: {
+                if (mProductUri != null) {
+                    Context c = getContext();
+                    ProductQueryHandler handler = new ProductQueryHandler(c, c.getContentResolver());
+                    handler.startDelete(1, null, mProductUri, null, null);
+                }
                 startMainActivity();
                 return true;
             }
         }
         return false;
     }
-
-    @Override
-    public void onStop(){
-        Log.d(TAG, "onStop");
-        super.onStop();
-    }
-
 }

@@ -50,7 +50,6 @@ public class ProductQueryHandler extends AsyncQueryHandler {
         long tomorrowTime = Utils.getTodayTimeInMillis() + Utils.ONE_DAYS_IN_MILLIS;
         //Three hours later from now on in millisecond
         long threeHrsLater = Utils.getCurrentTimeInMillis() + Utils.THREE_HOURS_IN_MILLIS;
-//        long threeHrsLater = Utils.getCurrentTimeInMillis() + Utils.TEN_SEC_IN_MILLIS;
         long triggerAtMillis = expiredTime > tomorrowTime ? tomorrowTime : threeHrsLater;
 
         AlarmService service = new AlarmService(mContext, productUri, productName, expiredTime);
