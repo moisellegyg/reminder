@@ -62,6 +62,26 @@ There are three actions can be taken when seeing a notifcation.
 
 
 # Development Notes
+There are four main components in this app.
+- Product main view
+ - Used `RecyclerView` for listing items.
+ - Defined `MultiSelectionState` for multi-select purpose since Android doesn't have one for `RecyclerView`.
+ - `TransitionAnimation` is used for product image when navigating between main view and edit view.
+
+- Product edit view
+ - Enabled the **Delete** action in menu only when the edit view is for an existing item.
+ - Defined customized `TextInputEditText` class `DatePickEditText` for inputting date. A `DatePickerDialog` will be launched when pressing a `DatePickEditText` instance.
+ - Set `android:imeOptions="actionNext"` for product name so user can have a smoothier experience when typing inputs.
+
+- Local database
+  - Used SQLite database to save the local data. A URI(or path) of product image is stored in the database and the image itself is saved under `Environment.DIRECTORY_PICTURES` instead of writing the whole image as `BLOB` in the database.
+  - Defined a customized `ContentProvider` class `ProductProvider` for quering data.
+  - Defined a customized `AsyncQueryHandler` class `ProductQueryHandler` for quering data.
+  
+- Alarm & notificatoin
+  - An alarm will be set via `AlarmService` everytime when user saves an item.
+  - `AlarmBroadcastReceiver` will receive a broadcast and create a notification when alarm is triggered.
+  - `NotificationBroadcastReceiver` will receive a broadcast when user takes action on a notification.
 
 # References
 - https://bignerdranch.github.io/recyclerview-multiselect/
