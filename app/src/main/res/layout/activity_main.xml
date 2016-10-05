@@ -15,7 +15,7 @@
         <android.support.v7.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="?attr/listPreferredItemHeight"
             android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
             android:elevation="0dp"
             android:gravity="center_vertical"
@@ -23,10 +23,10 @@
             app:popupTheme="@style/AppTheme.PopupOverlay">
             <ImageView
                 android:layout_width="wrap_content"
-                android:layout_height="?attr/listPreferredItemHeight"
-                android:layout_gravity="left"
-                android:scaleType="center"
-                android:src="@drawable/actionbar_icon"
+                android:layout_height="48dp"
+                android:layout_gravity="center_vertical"
+                android:scaleType="fitStart"
+                android:src="@drawable/fresh"
                 app:layout_scrollFlags="scroll|enterAlways"/>
             <!--<TextView-->
                 <!--android:layout_width="wrap_content"-->
