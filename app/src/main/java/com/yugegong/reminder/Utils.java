@@ -2,6 +2,8 @@ package com.yugegong.reminder;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
+import android.media.ExifInterface;
 import android.util.Log;
 
 import java.io.File;
@@ -40,11 +42,18 @@ public class Utils {
         return DateFormat.getDateInstance(DateFormat.MEDIUM).format(new Date(timestamp));
     }
 
-    public static Bitmap decodeBitmapFromFile(String path, int reqWidth, int reqHeight) {
+    public static Bitmap decodeBitmapFromFile(String path, int reqWidth, int reqHeight){
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = false;
         options.inSampleSize = 8;
-        return BitmapFactory.decodeFile(path, options);
+        Bitmap img = BitmapFactory.decodeFile(path, options);
+        Bitmap resImg = null;
+        try {
+            resImg = rotateImage(img, path);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return resImg;
 
 //        BitmapFactory.Options options = new BitmapFactory.Options();
 //        Bitmap src = BitmapFactory.decodeFile(path, options);
@@ -90,7 +99,31 @@ public class Utils {
         }
         Log.d("Utils", "inSampleSize = " + inSampleSize);
         return inSampleSize;
+    }
 
+    private static Bitmap rotateImage(Bitmap img, String path) throws IOException {
+
+        ExifInterface ei = new ExifInterface(path);
+        int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+
+        switch (orientation) {
+            case ExifInterface.ORIENTATION_ROTATE_90:
+                return rotateImage(img, 90);
+            case ExifInterface.ORIENTATION_ROTATE_180:
+                return rotateImage(img, 180);
+            case ExifInterface.ORIENTATION_ROTATE_270:
+                return rotateImage(img, 270);
+            default:
+                return img;
+        }
+    }
+
+    private static Bitmap rotateImage(Bitmap img, float degree) {
+        Matrix matrix = new Matrix();
+        matrix.postRotate(degree);
+        Bitmap rotatedImg = Bitmap.createBitmap(img, 0, 0, img.getWidth(), img.getHeight(), matrix, true);
+        img.recycle();
+        return rotatedImg;
     }
 
     /**
@@ -100,13 +133,13 @@ public class Utils {
      */
     public static void saveBitmapFile(String path, Bitmap bitmap) {
         deleteFile(path);
+        if (bitmap == null) return;
         try {
             FileOutputStream outputStream = new FileOutputStream(path);
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
             outputStream.flush();
             outputStream.close();
             Log.d("saveBitmapFile", "new size: " + new File(path).length());
-
         } catch (IOException e) {
             e.printStackTrace();
         }

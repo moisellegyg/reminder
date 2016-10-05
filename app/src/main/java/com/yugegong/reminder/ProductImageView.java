@@ -10,6 +10,8 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.widget.ImageView;
 
+import java.io.IOException;
+
 /**
  * Created by ygong on 8/11/16.
  */
