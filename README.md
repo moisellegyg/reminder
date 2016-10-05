@@ -8,8 +8,7 @@ There are three tabs in **main page**.
 - `USED` - All used food, regardless expired or not, will be listed here
 - `EXPIRED` - Unsed, expired food will be listed here
 
-![screenshot of main page]
-(https://github.com/moisellegyg/reminder/blob/master/screenshots/ss_main1.png)
+All saved items will be listed in the main page by **expired date** in **descending** order.
 
 ##### Portrait & Landscape mode
 ![screenshot of main page in portrait mode]
@@ -33,9 +32,9 @@ There are five information items in the edit view.
 - `Expired date` - Required input from user, the date on which this item will be expired.
 - `Already used checkbox` - Optional input from user, check to mark this item is used by user.
 
-Press `Save` to save this item, or `Cancel` to return back to main page.<p>
-When an item is saved, an alarm to send out a notification three days before the expiration date will be set. If the item is expired within three days, a notification will be sent out right after the item is being saved.<p>
-All saved items will be listed in the main page by **expired date** in **Descending** order.
+Press `Save` to save this item, or `Cancel` to return back to main page.
+
+When an item is saved, an alarm to send out a notification three days before the expiration date will be set. If the item is expired within three days, a notification will be sent out right after the item is being saved.
 
 ## Update an existing item
 By selecting an item in the main page, user will be navigated to the **edit page** of the selected item. You can update the information or press to expand the menu button to delete this item from the database.
@@ -43,7 +42,7 @@ By selecting an item in the main page, user will be navigated to the **edit page
 ![screenshot of edit page]
 (https://github.com/moisellegyg/reminder/blob/master/screenshots/ss_delete_single.png)
 
-User can also **long pressing** to activate the multi-select mode in main page to operate bulk delete.
+User can also **long press** to activate the multi-select mode in main page to do bulk delete.
 
 ![screenshot of main page in bulk delete mode]
 (https://github.com/moisellegyg/reminder/blob/master/screenshots/ss_delete_bulk.png)
@@ -51,8 +50,8 @@ User can also **long pressing** to activate the multi-select mode in main page t
 ## Send a notification
 
 There are three actions can be taken when seeing a notifcation.
-- `Press notificatoin card` - This will laucn the edit page of this item.
-- `Used` - Press this button to mark the item was used already. Notification will be dismissed and the item will be moved under `USED` tab in main page.
+- Press notificatoin card - This will laucn the edit page of the notified item.
+- `USED` - Press this button to mark the item was used already. Notification will be dismissed and the item will be moved under `USED` tab in main page.
 - `REMIND LATER` - Press this button to dismiss the notification. An alarm will be set to notify the user later. If the item will be expired tody, a new notification will be sent out after about three hours. Otherwise, the next day.
 
 ![screenshot of notification]
@@ -75,6 +74,7 @@ There are four main components in this app.
   - Used SQLite database to save the local data. A URI(or path) of product image is stored in the database and the image itself is saved under `Environment.DIRECTORY_PICTURES` instead of writing the whole image as `BLOB` in the database.
   - Defined a customized `ContentProvider` class `ProductProvider` for quering data.
   - Defined a customized `AsyncQueryHandler` class `ProductQueryHandler` for quering data.
+  - Implemented `LoaderManager.LoaderCallbacks<Cursor>` in `ProductListFragment` to load data in main page.
   
 - Alarm & notificatoin
   - An alarm will be set via `AlarmService` everytime when user saves an item.
