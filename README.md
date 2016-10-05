@@ -11,20 +11,18 @@ There are three tabs in **main page**.
 ![screenshot of main page]
 (https://github.com/moisellegyg/reminder/blob/master/screenshots/ss_main1.png)
 
-##### Portrait mode
+##### Portrait & Landscape mode
 ![screenshot of main page in portrait mode]
 (https://github.com/moisellegyg/reminder/blob/master/screenshots/ss_main2.png)
-##### Landscpe mode
 ![screenshot of main page in portrait mode]
 (https://github.com/moisellegyg/reminder/blob/master/screenshots/ss_main3.png)
 
 ## Create a new item
 Press the **yellow button** at right bottom of main page to create a new item, which will navigate user to an **edit page**.
 
-##### Portrait mode
+##### Portrait & Landscape mode
 ![screenshot of edit page]
 (https://github.com/moisellegyg/reminder/blob/master/screenshots/ss_edit.png)
-##### Landscape mode
 ![screenshot of edit page landscape]
 (https://github.com/moisellegyg/reminder/blob/master/screenshots/ss_edit_land.png)
 
