@@ -105,12 +105,18 @@ public class ProductProvider extends ContentProvider {
         int deletedRows = 0;
         mDb = mProductDbHelper.getWritableDatabase();
         switch (mUriMatcher.match(uri)) {
-            case CODE_PRODUCTS:
-                deletedRows = mDb.delete(ProductContract.ProductEntry.TABLE_NAME, selection, selectionArgs);
+            case CODE_PRODUCTS: {
+                deletedRows = mDb.delete(ProductContract.ProductEntry.TABLE_NAME,
+                        selection, selectionArgs);
+                // TODO remove images in bulk as well
                 break;
-            case CODE_PRODUCT_ITEM:
-                deletedRows = deleteProductById(uri);
+            }
+            case CODE_PRODUCT_ITEM: {
+                deleteImageByUri(uri);
+                long _id = ProductContract.ProductEntry.getIdFromUri(uri);
+                deletedRows = deleteProductById(_id);
                 break;
+            }
             default:
                 deletedRows = 0;
         }
@@ -163,7 +169,13 @@ public class ProductProvider extends ContentProvider {
                 whereArgs);
     }
 
-    private int deleteProductById(Uri uri) {
+    private int deleteProductById(long _id) {
+        String whereClause = "_id = ? ";
+        String[] whereArgs = {Long.toString(_id)};
+        return mDb.delete(ProductContract.ProductEntry.TABLE_NAME, whereClause, whereArgs);
+    }
+
+    private void deleteImageByUri(Uri uri) {
         Cursor cursor = this.query(
                 uri,
                 new String[] {ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_IMG_PATH},
@@ -176,10 +188,5 @@ public class ProductProvider extends ContentProvider {
             }
             cursor.close();
         }
-
-        long _id = ProductContract.ProductEntry.getIdFromUri(uri);
-        String whereClause = "_id = ? ";
-        String[] whereArgs = {Long.toString(_id)};
-        return mDb.delete(ProductContract.ProductEntry.TABLE_NAME, whereClause, whereArgs);
     }
 }
