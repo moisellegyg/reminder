@@ -91,12 +91,13 @@ public class AlarmBroadcastReceiver extends BroadcastReceiver {
      */
     private NotificationCompat.Builder getNotificationBuilder() {
         long todayTime = Utils.getTodayTimeInMillis();
-        int days = (int)((mExpiredTimestamp - todayTime) / Utils.ONE_DAYS_IN_MILLIS) + 1;
-        String contentText = days < 0 ? mContext.getString(R.string.notif_product_expired_desc, mProductName) :
-                (days == 1 ? mContext.getString(R.string.notif_product_expiring_today_desc, mProductName) :
-                        mContext.getString(R.string.notif_product_expiring_desc, mProductName, days));
+        long diff = mExpiredTimestamp - todayTime;
+        long days = diff / Utils.ONE_DAYS_IN_MILLIS;
+        String contentText = diff < 0 ? mContext.getString(R.string.notif_product_expired_desc, mProductName) :
+                (days == 0 ? mContext.getString(R.string.notif_product_expiring_today_desc, mProductName) :
+                        mContext.getString(R.string.notif_product_expiring_desc, mProductName, days + 1));
 
-        Log.d(LOG_TAG, contentText);
+//        Log.d(LOG_TAG, contentText);
 
         final NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext);
         builder.setPriority(Notification.PRIORITY_HIGH)

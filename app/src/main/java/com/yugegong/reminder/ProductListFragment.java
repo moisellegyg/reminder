@@ -117,11 +117,16 @@ public class ProductListFragment extends Fragment implements LoaderManager.Loade
         });
 
         mRecyclerView.setAdapter(mReminderAdapter);
-        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
-            mLayoutManger = new LinearLayoutManager(getContext());
-        } else {
-            mLayoutManger = new GridLayoutManager(getContext(), 2);
+//        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+//            mLayoutManger = new LinearLayoutManager(getContext());
+//        } else {
+//            mLayoutManger = new GridLayoutManager(getContext(), 2);
+//        }
+        int columnNum = 2;
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            columnNum = 3;
         }
+        mLayoutManger = new GridLayoutManager(getContext(), columnNum);
 
         mRecyclerView.setLayoutManager(mLayoutManger);
 
