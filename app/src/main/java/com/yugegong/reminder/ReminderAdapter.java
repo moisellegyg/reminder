@@ -2,6 +2,7 @@ package com.yugegong.reminder;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
@@ -16,6 +17,7 @@ import android.widget.TextView;
 
 import com.yugegong.reminder.data.ProductContract;
 import com.yugegong.reminder.data.ProductProvider;
+import com.yugegong.reminder.data.ProductQueryHandler;
 
 /**
  * Created by ygong on 8/3/16.
@@ -75,15 +77,22 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
             switch (item.getItemId()) {
                 case R.id.action_delete: {
                     int total = getItemCount();
+                    ProductQueryHandler handler = new ProductQueryHandler(mContext, mContext.getContentResolver());
                     for (int i = 0; i < total; i++) {
                         if (mMultiSelectionState.isItemSelected(i)) {
                             long _id = mMultiSelectionState.getItemId(i);
                             Log.d(TAG, "delete _id = " + _id);
-                            String[] selectionArgs = {Long.toString(_id)};
-                            mContext.getContentResolver().delete(
-                                    ProductContract.ProductEntry.CONTENT_URI,
-                                    ProductProvider.PRODUCT_ID_SELECTION,
-                                    selectionArgs);
+                            Uri productUri = ProductContract.ProductEntry.buildProductUri(_id);
+                            handler.startDelete(1, null,
+                                    productUri,
+                                    null, null);
+
+//                            String[] selectionArgs = {Long.toString(_id)};
+//                            mContext.getContentResolver().delete(
+//                                    ProductContract.ProductEntry.CONTENT_URI,
+//                                    ProductProvider.PRODUCT_ID_SELECTION,
+//                                    selectionArgs);
+
                             // no need to call notifyItemRemoved() here because ProductProvider
                             // will take care of this
                             //notifyItemRemoved(i);

@@ -9,6 +9,8 @@ import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.yugegong.reminder.Utils;
+
 /**
  * Created by ygong on 8/9/16.
  */
@@ -162,6 +164,19 @@ public class ProductProvider extends ContentProvider {
     }
 
     private int deleteProductById(Uri uri) {
+        Cursor cursor = this.query(
+                uri,
+                new String[] {ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_IMG_PATH},
+                null, null, null);
+        if ((cursor != null) && cursor.moveToFirst()) {
+            int columnIndex = cursor.getColumnIndex(ProductContract.ProductEntry.COLUMN_NAME_PRODUCT_IMG_PATH);
+            if (columnIndex != -1 ) {
+                String path = cursor.getString(columnIndex);
+                Utils.deleteFile(path);
+            }
+            cursor.close();
+        }
+
         long _id = ProductContract.ProductEntry.getIdFromUri(uri);
         String whereClause = "_id = ? ";
         String[] whereArgs = {Long.toString(_id)};
